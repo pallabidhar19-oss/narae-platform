@@ -127,6 +127,7 @@ origin_country = st.selectbox(
         story.append(Paragraph("K-Entertainment Customs Intelligence Report", subtitle_style))
         story.append(Paragraph(f"<b>Product:</b> {product}", body_style))
         story.append(Paragraph(f"<b>Destination:</b> {country}", body_style))
+        story.append(Paragraph(f"<b>Country of Origin:</b> {origin_country}", body_style))
         story.append(Paragraph(f"<b>Shipment Value:</b> ${value:,.2f} USD", body_style))
         story.append(Paragraph(f"<b>Quantity:</b> {quantity} units", body_style))
         story.append(Paragraph(f"<b>Artist / IP:</b> {artist if artist else 'Not specified'}", body_style))
