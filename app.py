@@ -8,7 +8,6 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.units import inch
 
-# Page config
 st.set_page_config(
     page_title="Narae — K-Entertainment Intelligence Platform",
     page_icon="🎵",
@@ -16,207 +15,43 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Custom CSS
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
-
 * { font-family: 'Inter', sans-serif; }
-
-.stApp {
-    background: linear-gradient(135deg, #0a0a14 0%, #0d0d1a 50%, #080810 100%);
-    color: #e8e8f0;
-}
-
-.narae-header {
-    background: linear-gradient(135deg, #1a0533 0%, #0d1544 50%, #001a2e 100%);
-    border: 1px solid rgba(139, 92, 246, 0.3);
-    border-radius: 16px;
-    padding: 32px 40px;
-    margin-bottom: 32px;
-    position: relative;
-    overflow: hidden;
-}
-
-.narae-header::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -20%;
-    width: 400px;
-    height: 400px;
-    background: radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%);
-    border-radius: 50%;
-}
-
-.narae-logo {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 42px;
-    font-weight: 700;
-    background: linear-gradient(135deg, #a78bfa, #60a5fa, #34d399);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    letter-spacing: -1px;
-    margin: 0;
-}
-
-.narae-tagline {
-    color: rgba(167, 139, 250, 0.8);
-    font-size: 14px;
-    font-weight: 500;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    margin-top: 4px;
-}
-
-.metric-card {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 12px;
-    padding: 20px;
-    text-align: center;
-    transition: all 0.3s ease;
-}
-
-.metric-number {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 32px;
-    font-weight: 700;
-    color: #a78bfa;
-    margin: 0;
-}
-
-.metric-label {
-    font-size: 12px;
-    color: rgba(232,232,240,0.5);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-top: 4px;
-}
-
-.result-box {
-    background: rgba(139, 92, 246, 0.08);
-    border: 1px solid rgba(139, 92, 246, 0.25);
-    border-radius: 12px;
-    padding: 20px;
-    margin: 12px 0;
-}
-
-.risk-high {
-    background: rgba(239, 68, 68, 0.08);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-    border-radius: 8px;
-    padding: 12px 16px;
-    margin: 8px 0;
-    color: #fca5a5;
-}
-
-.risk-medium {
-    background: rgba(245, 158, 11, 0.08);
-    border: 1px solid rgba(245, 158, 11, 0.3);
-    border-radius: 8px;
-    padding: 12px 16px;
-    margin: 8px 0;
-    color: #fcd34d;
-}
-
-.risk-low {
-    background: rgba(52, 211, 153, 0.08);
-    border: 1px solid rgba(52, 211, 153, 0.3);
-    border-radius: 8px;
-    padding: 12px 16px;
-    margin: 8px 0;
-    color: #6ee7b7;
-}
-
-.score-badge {
-    display: inline-block;
-    padding: 6px 16px;
-    border-radius: 20px;
-    font-weight: 700;
-    font-size: 14px;
-    letter-spacing: 1px;
-}
-
-.tab-section {
-    background: rgba(255,255,255,0.02);
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 16px;
-    padding: 28px;
-    margin-top: 16px;
-}
-
-/* Override streamlit defaults */
-.stTabs [data-baseweb="tab-list"] {
-    background: rgba(255,255,255,0.04);
-    border-radius: 12px;
-    padding: 4px;
-    gap: 4px;
-}
-
-.stTabs [data-baseweb="tab"] {
-    color: rgba(232,232,240,0.6);
-    font-weight: 500;
-    border-radius: 8px;
-    padding: 8px 20px;
-}
-
-.stTabs [aria-selected="true"] {
-    background: rgba(139, 92, 246, 0.25) !important;
-    color: #a78bfa !important;
-}
-
-.stButton > button {
-    background: linear-gradient(135deg, #7c3aed, #4f46e5);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-weight: 600;
-    padding: 10px 24px;
-    width: 100%;
-    transition: all 0.3s;
-}
-
-.stButton > button:hover {
-    background: linear-gradient(135deg, #8b5cf6, #6366f1);
-    box-shadow: 0 4px 20px rgba(139,92,246,0.4);
-}
-
-.stSelectbox > div > div {
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.1);
-    color: #e8e8f0;
-    border-radius: 8px;
-}
-
-.stTextInput > div > div > input, .stNumberInput > div > div > input {
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.1);
-    color: #e8e8f0;
-    border-radius: 8px;
-}
-
-.stTextArea > div > div > textarea {
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.1);
-    color: #e8e8f0;
-    border-radius: 8px;
-}
-
+.stApp { background: linear-gradient(135deg, #0a0a14 0%, #0d0d1a 50%, #080810 100%); color: #e8e8f0; }
+.narae-header { background: linear-gradient(135deg, #1a0533 0%, #0d1544 50%, #001a2e 100%); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 16px; padding: 32px 40px; margin-bottom: 32px; position: relative; overflow: hidden; }
+.narae-header::before { content: ''; position: absolute; top: -50%; right: -20%; width: 400px; height: 400px; background: radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%); border-radius: 50%; }
+.narae-logo { font-family: 'Space Grotesk', sans-serif; font-size: 42px; font-weight: 700; background: linear-gradient(135deg, #a78bfa, #60a5fa, #34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -1px; margin: 0; }
+.narae-tagline { color: rgba(167, 139, 250, 0.8); font-size: 14px; font-weight: 500; letter-spacing: 3px; text-transform: uppercase; margin-top: 4px; }
+.metric-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 20px; text-align: center; transition: all 0.3s ease; }
+.metric-number { font-family: 'Space Grotesk', sans-serif; font-size: 32px; font-weight: 700; color: #a78bfa; margin: 0; }
+.metric-label { font-size: 12px; color: rgba(232,232,240,0.5); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+.result-box { background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.25); border-radius: 12px; padding: 20px; margin: 12px 0; }
+.risk-high { background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 12px 16px; margin: 8px 0; color: #fca5a5; }
+.risk-medium { background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 12px 16px; margin: 8px 0; color: #fcd34d; }
+.risk-low { background: rgba(52, 211, 153, 0.08); border: 1px solid rgba(52, 211, 153, 0.3); border-radius: 8px; padding: 12px 16px; margin: 8px 0; color: #6ee7b7; }
+.score-badge { display: inline-block; padding: 6px 16px; border-radius: 20px; font-weight: 700; font-size: 14px; letter-spacing: 1px; }
+.tab-section { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 28px; margin-top: 16px; }
+.stTabs [data-baseweb="tab-list"] { background: rgba(255,255,255,0.04); border-radius: 12px; padding: 4px; gap: 4px; }
+.stTabs [data-baseweb="tab"] { color: rgba(232,232,240,0.6); font-weight: 500; border-radius: 8px; padding: 8px 20px; }
+.stTabs [aria-selected="true"] { background: rgba(139, 92, 246, 0.25) !important; color: #a78bfa !important; }
+.stButton > button { background: linear-gradient(135deg, #7c3aed, #4f46e5); color: white; border: none; border-radius: 10px; font-weight: 600; padding: 10px 24px; width: 100%; transition: all 0.3s; }
+.stButton > button:hover { background: linear-gradient(135deg, #8b5cf6, #6366f1); box-shadow: 0 4px 20px rgba(139,92,246,0.4); }
+.stSelectbox > div > div { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #e8e8f0; border-radius: 8px; }
+.stTextInput > div > div > input, .stNumberInput > div > div > input { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #e8e8f0; border-radius: 8px; }
+.stTextArea > div > div > textarea { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #e8e8f0; border-radius: 8px; }
 div[data-testid="stMarkdownContainer"] p { color: rgba(232,232,240,0.85); }
 h1, h2, h3 { color: #e8e8f0; }
 label { color: rgba(232,232,240,0.7) !important; }
 </style>
 """, unsafe_allow_html=True)
 
-# Initialize OpenAI client
 try:
     client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 except:
     client = None
 
-# Header
 st.markdown("""
 <div class="narae-header">
     <p class="narae-logo">나래 Narae</p>
@@ -224,7 +59,6 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Platform metrics
 col1, col2, col3, col4, col5 = st.columns(5)
 with col1:
     st.markdown('<div class="metric-card"><p class="metric-number">150+</p><p class="metric-label">Countries</p></div>', unsafe_allow_html=True)
@@ -239,7 +73,6 @@ with col5:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# Main tabs
 tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "🎁 Customs Intelligence",
     "✈️ Shipping Optimizer",
@@ -254,309 +87,79 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
 # ============================================================
 with tab1:
     st.markdown("### 🎁 K-Entertainment Customs Intelligence Engine")
-    st.markdown(
-        "*AI-assisted HS/HTS classification, duty estimation, documentation "
-        "requirements, and customs risk analysis*"
-    )
+    st.markdown("*AI-assisted HS/HTS classification, duty estimation, documentation requirements, and customs risk analysis*")
 
     col1, col2 = st.columns([2, 1])
-
     with col1:
-        product = st.text_area(
-            "Product Description",
-            placeholder=(
-                "e.g. BTS Map of the Soul cotton hoodie, "
-                "380gsm, knitted cotton, embroidered logo"
-            ),
-            height=100
-        )
-
-        country = st.selectbox(
-            "Destination Country",
-            [
-                "United States",
-                "United Kingdom",
-                "Germany",
-                "France",
-                "Japan",
-                "Australia",
-                "Canada",
-                "Brazil",
-                "Argentina",
-                "India",
-                "Singapore",
-                "Mexico",
-                "Netherlands",
-                "Spain",
-                "Italy",
-                "South Korea"
-            ]
-        )
-
+        product = st.text_area("Product Description", placeholder="e.g. BTS Map of the Soul cotton hoodie, 380gsm, knitted cotton, embroidered logo", height=100)
+        country = st.selectbox("Destination Country", ["United States","United Kingdom","Germany","France","Japan","Australia","Canada","Brazil","Argentina","India","Singapore","Mexico","Netherlands","Spain","Italy","South Korea"])
     with col2:
-        value = st.number_input(
-            "Shipment Value (USD)",
-            min_value=0.0,
-            value=500.0,
-            step=50.0
-        )
+        value = st.number_input("Shipment Value (USD)", min_value=0.0, value=500.0, step=50.0)
+        quantity = st.number_input("Quantity (units)", min_value=1, value=100, step=1)
+        artist = st.text_input("Artist / IP Name (optional)", placeholder="e.g. BTS, Stray Kids")
 
-        quantity = st.number_input(
-            "Quantity (units)",
-            min_value=1,
-            value=100,
-            step=1
-        )
+    st.info("Narae provides preliminary AI-assisted customs intelligence. Final HS classification, duty treatment, and import requirements should be verified against the destination country's official customs/tariff authority or a licensed customs professional.")
 
-        artist = st.text_input(
-            "Artist / IP Name (optional)",
-            placeholder="e.g. BTS, Stray Kids"
-        )
-
-    st.info(
-        "Narae provides preliminary AI-assisted customs intelligence. "
-        "Final HS classification, duty treatment, and import requirements "
-        "should be verified against the destination country's official "
-        "customs/tariff authority or a licensed customs professional."
-    )
-
-    # --------------------------------------------------------
-    # PDF REPORT GENERATOR
-    # --------------------------------------------------------
-    def create_customs_pdf(
-        product,
-        country,
-        value,
-        quantity,
-        artist,
-        result
-    ):
+    def create_customs_pdf(product, country, value, quantity, artist, result):
         buffer = io.BytesIO()
-
-        doc = SimpleDocTemplate(
-            buffer,
-            pagesize=letter,
-            rightMargin=50,
-            leftMargin=50,
-            topMargin=50,
-            bottomMargin=50
-        )
-
+        doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=50, leftMargin=50, topMargin=50, bottomMargin=50)
         styles = getSampleStyleSheet()
-
-        title_style = ParagraphStyle(
-            "NaraeTitle",
-            parent=styles["Title"],
-            alignment=TA_CENTER,
-            fontSize=20,
-            spaceAfter=8
-        )
-
-        subtitle_style = ParagraphStyle(
-            "NaraeSubtitle",
-            parent=styles["Normal"],
-            alignment=TA_CENTER,
-            fontSize=10,
-            spaceAfter=20
-        )
-
-        body_style = ParagraphStyle(
-            "NaraeBody",
-            parent=styles["BodyText"],
-            fontSize=9,
-            leading=13,
-            spaceAfter=7
-        )
-
+        title_style = ParagraphStyle("NaraeTitle", parent=styles["Title"], alignment=TA_CENTER, fontSize=20, spaceAfter=8)
+        subtitle_style = ParagraphStyle("NaraeSubtitle", parent=styles["Normal"], alignment=TA_CENTER, fontSize=10, spaceAfter=20)
+        body_style = ParagraphStyle("NaraeBody", parent=styles["BodyText"], fontSize=9, leading=13, spaceAfter=7)
         story = []
-
-        story.append(
-            Paragraph(
-                "나래 Narae",
-                title_style
-            )
-        )
-
-        story.append(
-            Paragraph(
-                "K-Entertainment Customs Intelligence Report",
-                subtitle_style
-            )
-        )
-
-        story.append(
-            Paragraph(
-                f"<b>Product:</b> {product}",
-                body_style
-            )
-        )
-
-        story.append(
-            Paragraph(
-                f"<b>Destination:</b> {country}",
-                body_style
-            )
-        )
-
-        story.append(
-            Paragraph(
-                f"<b>Shipment Value:</b> ${value:,.2f} USD",
-                body_style
-            )
-        )
-
-        story.append(
-            Paragraph(
-                f"<b>Quantity:</b> {quantity} units",
-                body_style
-            )
-        )
-
-        story.append(
-            Paragraph(
-                f"<b>Artist / IP:</b> "
-                f"{artist if artist else 'Not specified'}",
-                body_style
-            )
-        )
-
-        story.append(
-            Paragraph(
-                f"<b>Generated:</b> "
-                f"{datetime.now().strftime('%Y-%m-%d %H:%M')}",
-                body_style
-            )
-        )
-
+        story.append(Paragraph("나래 Narae", title_style))
+        story.append(Paragraph("K-Entertainment Customs Intelligence Report", subtitle_style))
+        story.append(Paragraph(f"<b>Product:</b> {product}", body_style))
+        story.append(Paragraph(f"<b>Destination:</b> {country}", body_style))
+        story.append(Paragraph(f"<b>Shipment Value:</b> ${value:,.2f} USD", body_style))
+        story.append(Paragraph(f"<b>Quantity:</b> {quantity} units", body_style))
+        story.append(Paragraph(f"<b>Artist / IP:</b> {artist if artist else 'Not specified'}", body_style))
+        story.append(Paragraph(f"<b>Generated:</b> {datetime.now().strftime('%Y-%m-%d %H:%M')}", body_style))
         story.append(Spacer(1, 12))
-
-        story.append(
-            Paragraph(
-                "PRELIMINARY AI-ASSISTED ANALYSIS",
-                styles["Heading2"]
-            )
-        )
-
-        # Convert markdown-style output into PDF-friendly paragraphs
+        story.append(Paragraph("PRELIMINARY AI-ASSISTED ANALYSIS", styles["Heading2"]))
         for line in result.split("\n"):
             line = line.strip()
-
             if not line:
                 story.append(Spacer(1, 6))
                 continue
-
-            line = line.replace("&", "&amp;")
-            line = line.replace("<", "&lt;")
-            line = line.replace(">", "&gt;")
-
+            line = line.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
             if line.startswith("**") and line.endswith("**"):
-                clean_line = line.replace("**", "")
-                story.append(
-                    Paragraph(
-                        clean_line,
-                        styles["Heading3"]
-                    )
-                )
+                story.append(Paragraph(line.replace("**", ""), styles["Heading3"]))
             elif line.startswith("- "):
-                clean_line = "• " + line[2:]
-                story.append(
-                    Paragraph(
-                        clean_line,
-                        body_style
-                    )
-                )
+                story.append(Paragraph("• " + line[2:], body_style))
             else:
-                clean_line = line.replace("**", "")
-                story.append(
-                    Paragraph(
-                        clean_line,
-                        body_style
-                    )
-                )
-
+                story.append(Paragraph(line.replace("**", ""), body_style))
         story.append(Spacer(1, 15))
-
-        story.append(
-            Paragraph(
-                "<b>Important:</b> This report is an AI-assisted "
-                "preliminary assessment and is not a customs ruling, "
-                "legal opinion, or binding tariff determination. "
-                "Classification, duty rates, preferential treatment, "
-                "and documentation requirements should be verified "
-                "before shipment.",
-                body_style
-            )
-        )
-
+        story.append(Paragraph("<b>Important:</b> This report is an AI-assisted preliminary assessment and is not a customs ruling, legal opinion, or binding tariff determination. Classification, duty rates, preferential treatment, and documentation requirements should be verified before shipment.", body_style))
         doc.build(story)
-
         buffer.seek(0)
         return buffer
 
-
-    # --------------------------------------------------------
-    # RUN ANALYSIS
-    # --------------------------------------------------------
-    if st.button(
-        "🔍 Run Customs Analysis",
-        key="customs_btn"
-    ):
-
+    if st.button("🔍 Run Customs Analysis", key="customs_btn"):
         if client is None:
-            st.error(
-                "OpenAI API key is not configured. "
-                "Please check your Streamlit Secrets."
-            )
-
+            st.error("OpenAI API key is not configured. Please check your Streamlit Secrets.")
         elif not product.strip():
-            st.warning(
-                "Please enter a detailed product description "
-                "before running the analysis."
-            )
-
+            st.warning("Please enter a detailed product description before running the analysis.")
         else:
-
-            with st.spinner(
-                "Narae is analyzing classification, duty, "
-                "documentation, and customs risk..."
-            ):
-
+            with st.spinner("Narae is analyzing classification, duty, documentation, and customs risk..."):
                 prompt = f"""
-You are a senior international trade and customs intelligence
-analyst specializing in K-entertainment merchandise.
-
+You are a senior international trade and customs intelligence analyst specializing in K-entertainment merchandise.
 Your task is to provide a PRELIMINARY AI-ASSISTED assessment.
 
 Shipment information:
-
-Product:
-{product}
-
-Destination country:
-{country}
-
-Shipment value:
-${value:,.2f} USD
-
-Quantity:
-{quantity} units
-
-Artist / IP:
-{artist if artist else "Not specified"}
+Product: {product}
+Destination country: {country}
+Shipment value: ${value:,.2f} USD
+Quantity: {quantity} units
+Artist / IP: {artist if artist else "Not specified"}
 
 IMPORTANT ACCURACY RULES:
-
 1. Do not present uncertain information as a guaranteed customs ruling.
-2. Clearly distinguish between:
-   - established classification logic,
-   - estimated duty treatment,
-   - information that requires official verification.
+2. Clearly distinguish between established classification logic, estimated duty treatment, and information that requires official verification.
 3. Do not invent an exact tariff rate if you cannot confidently establish it.
-4. If an exact duty rate depends on origin, material composition,
-   trade agreement eligibility, tariff schedule, or additional product
-   characteristics, explicitly say so.
-5. For the United States, distinguish the international 6-digit HS code
-   from the country-specific HTS classification.
+4. If an exact duty rate depends on origin, material composition, trade agreement eligibility, tariff schedule, or additional product characteristics, explicitly say so.
+5. For the United States, distinguish the international 6-digit HS code from the country-specific HTS classification.
 6. Consider country of origin and preferential trade agreements where relevant.
 7. Treat IP risk separately from customs classification.
 8. Give practical next steps for an operations/logistics team.
@@ -564,7 +167,6 @@ IMPORTANT ACCURACY RULES:
 Return the following exact sections:
 
 **1. HS/HTS CLASSIFICATION**
-
 - Primary 6-digit HS code
 - Country-specific tariff code if reasonably identifiable
 - Classification reasoning
@@ -573,7 +175,6 @@ Return the following exact sections:
 - Confidence level: HIGH / MEDIUM / LOW
 
 **2. IMPORT DUTY ESTIMATE**
-
 - Estimated duty treatment
 - Estimated duty rate or range, if supportable
 - Estimated duty on the stated shipment value
@@ -581,24 +182,11 @@ Return the following exact sections:
 - Potential preferential treatment or FTA considerations
 - What must be verified before shipment
 
-Do NOT fabricate an exact duty rate.
-
 **3. REQUIRED DOCUMENTATION**
-
-List the likely documents required for this shipment.
-
-Separate them into:
-
-- Core shipping documents
-- Customs documents
-- Origin / preferential-treatment documents
-- IP / licensing documents
-- Country-specific documents where relevant
+List the likely documents required. Separate into: Core shipping documents, Customs documents, Origin / preferential-treatment documents, IP / licensing documents, Country-specific documents.
 
 **4. CUSTOMS RISKS**
-
 Rate each as HIGH / MEDIUM / LOW:
-
 - Misclassification risk
 - Customs valuation / under-valuation risk
 - IP / brand authenticity risk
@@ -606,27 +194,13 @@ Rate each as HIGH / MEDIUM / LOW:
 - Import restriction risk
 - Documentation risk
 
-Give one short explanation for each.
-
 **5. IP & BRAND CONSIDERATIONS**
-
-Assess the implications of importing
-{artist if artist else "artist-branded K-entertainment"} merchandise.
-
-Do not assume that merchandise is licensed merely because
-the artist name is provided.
-
-Identify what evidence would establish authorization.
+Assess the implications of importing {artist if artist else "artist-branded K-entertainment"} merchandise.
 
 **6. OPERATIONAL RED FLAGS**
-
-Identify the most important things an operations team should verify
-before the shipment is released.
+Identify the most important things an operations team should verify before the shipment is released.
 
 **7. RECOMMENDED NEXT STEPS**
-
-Give a prioritized action list:
-
 1. Immediate verification
 2. Documentation
 3. Customs preparation
@@ -634,21 +208,14 @@ Give a prioritized action list:
 5. Final shipment approval
 
 **8. EXECUTIVE VERDICT**
-
-Provide:
-
 - Overall risk: LOW / MEDIUM / HIGH
 - Classification confidence: LOW / MEDIUM / HIGH
-- Recommended action:
-  GO / PROCEED WITH VERIFICATION / HOLD
-
-End with a short explanation suitable for an operations manager.
+- Recommended action: GO / PROCEED WITH VERIFICATION / HOLD
 """
-
                 try:
-
+                    # CHANGE 1: Updated model to gpt-5.6-luna
                     response = client.chat.completions.create(
-                        model="gpt-5-mini",
+                        model="gpt-5.6-luna",
                         messages=[
                             {
                                 "role": "user",
@@ -656,65 +223,18 @@ End with a short explanation suitable for an operations manager.
                             }
                         ]
                     )
-
                     result = response.choices[0].message.content
-
                     st.markdown("---")
-
-                    st.markdown(
-                        "#### 📋 Customs Intelligence Report"
-                    )
-
-                    st.markdown(
-                        '<div class="result-box">',
-                        unsafe_allow_html=True
-                    )
-
+                    st.markdown("#### 📋 Customs Intelligence Report")
+                    st.markdown('<div class="result-box">', unsafe_allow_html=True)
                     st.markdown(result)
-
-                    st.markdown(
-                        '</div>',
-                        unsafe_allow_html=True
-                    )
-
-                    # ------------------------------------------------
-                    # PDF DOWNLOAD
-                    # ------------------------------------------------
-                    pdf_file = create_customs_pdf(
-                        product=product,
-                        country=country,
-                        value=value,
-                        quantity=quantity,
-                        artist=artist,
-                        result=result
-                    )
-
-                    st.download_button(
-                        label="📥 Download PDF Report",
-                        data=pdf_file,
-                        file_name=(
-                            f"narae_customs_"
-                            f"{country.replace(' ', '_')}_"
-                            f"{datetime.now().strftime('%Y%m%d')}.pdf"
-                        ),
-                        mime="application/pdf"
-                    )
-
-                    st.caption(
-                        "PDF generated by Narae • "
-                        "Preliminary AI-assisted analysis • "
-                        "Verify tariff and customs requirements before shipment."
-                    )
-
+                    st.markdown('</div>', unsafe_allow_html=True)
+                    pdf_file = create_customs_pdf(product=product, country=country, value=value, quantity=quantity, artist=artist, result=result)
+                    st.download_button(label="📥 Download PDF Report", data=pdf_file, file_name=f"narae_customs_{country.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.pdf", mime="application/pdf")
+                    st.caption("PDF generated by Narae • Preliminary AI-assisted analysis • Verify tariff and customs requirements before shipment.")
                 except Exception as e:
-
-                    st.error(
-                        "The customs analysis could not be completed."
-                    )
-
-                    st.caption(
-                        f"Technical detail: {str(e)}"
-                    )
+                    st.error("The customs analysis could not be completed.")
+                    st.caption(f"Technical detail: {str(e)}")
 
 # ============================================================
 # TAB 2 — SHIPPING OPTIMIZER
@@ -780,14 +300,11 @@ with tab2:
             sea_ship_by = required_date - timedelta(days=sea_total)
             sea_viable = days_available >= sea_total
 
-            savings = abs(air_cost - sea_cost)
-
             st.markdown("---")
             col_air, col_sea = st.columns(2)
 
             with col_air:
                 status = "✅ VIABLE" if air_viable else "❌ NOT VIABLE"
-                color = "#34d399" if air_viable else "#ef4444"
                 st.markdown(f"### ✈️ Air Freight — {status}")
                 st.metric("Estimated Cost", f"${air_cost:,.0f}")
                 st.metric("Transit Time", f"{air['transit']} days")
@@ -806,18 +323,44 @@ with tab2:
                 st.metric("Customs Clearance", f"{air['customs']} days")
                 st.metric("Total Days Needed", f"{sea_total} days")
                 if sea_viable:
-                    st.success(f"Ship by: {sea_ship_by.strftime('%B %d, %Y')} — saves ${savings:,.0f} vs air")
+                    st.success(f"Ship by: {sea_ship_by.strftime('%B %d, %Y')}")
                 else:
                     st.error(f"Too slow — needed to ship by {sea_ship_by.strftime('%B %d, %Y')}")
 
             st.markdown("---")
             st.markdown("#### 💡 Narae Recommendation")
-            if sea_viable:
-                st.success(f"**Use Sea Freight.** Save ${savings:,.0f} on this shipment. Ship by {sea_ship_by.strftime('%B %d')}.")
-            elif air_viable:
-                st.warning(f"**Air Freight only viable option.** Cost: ${air_cost:,.0f}. Ship by {air_ship_by.strftime('%B %d')}.")
+
+            # CHANGE 2: Fixed recommendation logic
+            if not air_viable and not sea_viable:
+                st.error(
+                    "**Neither method meets your deadline.** "
+                    "Consider local sourcing or expedited courier (DHL/FedEx Premium)."
+                )
+            elif air_viable and not sea_viable:
+                st.warning(
+                    f"**Air Freight is your only viable option.** "
+                    f"Cost: ${air_cost:,.0f}. "
+                    f"Ship by {air_ship_by.strftime('%B %d')}."
+                )
+            elif sea_viable and not air_viable:
+                st.success(
+                    f"**Sea Freight is your only viable option.** "
+                    f"Cost: ${sea_cost:,.0f}. "
+                    f"Ship by {sea_ship_by.strftime('%B %d')}."
+                )
+            elif air_cost < sea_cost:
+                st.success(
+                    f"**Use Air Freight.** "
+                    f"It is cheaper and faster. "
+                    f"Save ${sea_cost - air_cost:,.0f} vs sea. "
+                    f"Ship by {air_ship_by.strftime('%B %d')}."
+                )
             else:
-                st.error("**Neither method meets your deadline.** Consider local sourcing or expedited courier (DHL/FedEx Premium).")
+                st.success(
+                    f"**Use Sea Freight.** "
+                    f"Save ${air_cost - sea_cost:,.0f} vs air. "
+                    f"Ship by {sea_ship_by.strftime('%B %d')}."
+                )
 
             if ship_dest in ["Brazil", "Argentina"]:
                 st.markdown('<div class="risk-high">⚠️ HIGH-DUTY MARKET: Brazil/Argentina require CFO-level customs strategy. Contact your customs broker before shipping.</div>', unsafe_allow_html=True)
@@ -841,7 +384,6 @@ with tab3:
         tour_artist = st.text_input("Artist / Group Name", placeholder="e.g. Stray Kids")
         tour_name = st.text_input("Tour Name", placeholder="e.g. DOMINATEWORLD Tour 2027")
         production_date = st.date_input("Merchandise Production Completion Date", value=date.today() + timedelta(days=14))
-
     with col2:
         merch_weight = st.number_input("Total Merch Weight per City (kg)", value=200.0)
         merch_value = st.number_input("Merch Value per City (USD)", value=20000.0)
@@ -852,7 +394,6 @@ with tab3:
 
     tour_cities = []
     num_cities = st.number_input("Number of Tour Cities", min_value=1, max_value=15, value=5)
-
     city_options = list(CUSTOMS_DAYS_TOUR.keys())
 
     for i in range(int(num_cities)):
@@ -889,15 +430,7 @@ with tab3:
             else:
                 status = "🟢 ON TRACK"
 
-            results.append({
-                "city": city,
-                "tour_date": tour_date,
-                "ship_by": ship_by,
-                "prod_buffer": prod_to_ship,
-                "freight_cost": freight_cost,
-                "status": status,
-                "customs_days": customs_days
-            })
+            results.append({"city": city, "tour_date": tour_date, "ship_by": ship_by, "prod_buffer": prod_to_ship, "freight_cost": freight_cost, "status": status, "customs_days": customs_days})
 
         for r in results:
             col1, col2, col3, col4 = st.columns([2, 2, 2, 1])
@@ -936,25 +469,10 @@ with tab4:
     with col1:
         ip_product = st.text_input("Product Description", placeholder="e.g. Stray Kids MIROH graphic tee with member faces")
         ip_artist = st.text_input("Artist / Intellectual Property", placeholder="e.g. Stray Kids, JYP Entertainment")
-        ip_country = st.selectbox("Target Market", [
-            "United States", "European Union", "United Kingdom", "Japan",
-            "Australia", "Brazil", "India", "Southeast Asia"
-        ])
+        ip_country = st.selectbox("Target Market", ["United States", "European Union", "United Kingdom", "Japan", "Australia", "Brazil", "India", "Southeast Asia"])
     with col2:
-        license_status = st.selectbox("License Status", [
-            "Officially Licensed (direct from agency)",
-            "Officially Licensed (through distributor)",
-            "Fan-made / Unofficial",
-            "License status unknown",
-            "Seeking license"
-        ])
-        seller_type = st.selectbox("Seller Type", [
-            "Official agency merchandise",
-            "Authorized third-party retailer",
-            "Independent online seller",
-            "Fan community organizer",
-            "Wholesale distributor"
-        ])
+        license_status = st.selectbox("License Status", ["Officially Licensed (direct from agency)", "Officially Licensed (through distributor)", "Fan-made / Unofficial", "License status unknown", "Seeking license"])
+        seller_type = st.selectbox("Seller Type", ["Official agency merchandise", "Authorized third-party retailer", "Independent online seller", "Fan community organizer", "Wholesale distributor"])
         platform = st.text_input("Sales Platform", placeholder="e.g. Weverse Shop, Amazon, Shopify store")
 
     if st.button("🔍 Analyze IP & Brand Risk", key="ip_btn"):
@@ -1001,10 +519,10 @@ Specific steps to reduce risk for this shipment
 **7. VERDICT**
 Clear GO / PROCEED WITH CAUTION / DO NOT SHIP recommendation"""
 
+                # CHANGE 3: Updated model to gpt-5.6-luna, removed max_tokens
                 response = client.chat.completions.create(
-                    model="gpt-3.5-turbo",
-                    messages=[{"role": "user", "content": prompt}],
-                    max_tokens=1000
+                    model="gpt-5.6-luna",
+                    messages=[{"role": "user", "content": prompt}]
                 )
 
             st.markdown('<div class="result-box">', unsafe_allow_html=True)
@@ -1025,26 +543,16 @@ with tab5:
         sr_product = st.text_input("Product", placeholder="e.g. Photo cards set, official", key="sr_product")
         sr_destination = st.selectbox("Destination", ["United States", "United Kingdom", "Germany", "Japan", "Brazil", "Australia", "Canada", "Singapore"], key="sr_dest")
         sr_value = st.number_input("Total Shipment Value (USD)", min_value=0.0, value=2000.0, key="sr_val")
-
     with col2:
         sr_weight = st.number_input("Weight (kg)", min_value=0.1, value=20.0, key="sr_wt")
         sr_deadline = st.date_input("Hard Deadline", value=date.today() + timedelta(days=21), key="sr_dl")
         sr_licensed = st.selectbox("License Status", ["Officially Licensed", "Unauthorized", "Unknown"], key="sr_lic")
-
     with col3:
-        sr_docs = st.multiselect("Documents Ready", [
-            "Commercial Invoice",
-            "Packing List",
-            "Certificate of Origin",
-            "License Agreement",
-            "Bill of Lading / AWB",
-            "Customs Bond (US)"
-        ], key="sr_docs")
+        sr_docs = st.multiselect("Documents Ready", ["Commercial Invoice", "Packing List", "Certificate of Origin", "License Agreement", "Bill of Lading / AWB", "Customs Bond (US)"], key="sr_docs")
         sr_broker = st.selectbox("Customs Broker", ["Engaged", "Not yet engaged", "Not needed"], key="sr_broker")
 
     if st.button("⚡ Calculate Readiness Score", key="readiness_btn"):
         score = 0
-        max_score = 100
         issues = []
         warnings = []
         good = []
@@ -1070,7 +578,6 @@ with tab5:
             score += 10
             warnings.append("⚠️ License status unknown — obtain documentation")
         else:
-            score += 0
             issues.append("🔴 Unauthorized merchandise — high seizure risk")
 
         doc_score = len(sr_docs) * 5
@@ -1127,7 +634,6 @@ with tab5:
                 <div style="font-size:12px; color:rgba(232,232,240,0.5); margin-top:4px;">{verdict_text}</div>
             </div>
             """, unsafe_allow_html=True)
-
         with col_verdict:
             if good:
                 st.markdown("**✅ Strengths**")
@@ -1153,8 +659,8 @@ with tab6:
     <div style="background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(79,70,229,0.15)); border:1px solid rgba(139,92,246,0.3); border-radius:16px; padding:32px; margin-bottom:24px;">
         <h3 style="color:#a78bfa; margin:0 0 16px 0;">The Problem Narae Solves</h3>
         <p style="color:rgba(232,232,240,0.8); font-size:16px; line-height:1.7;">
-        K-entertainment is a $10B+ global industry. Behind every world tour, album release, and fan event is a complex 
-        logistics operation spanning 150+ countries — customs compliance, HS classification, duty calculation, IP verification, 
+        K-entertainment is a $10B+ global industry. Behind every world tour, album release, and fan event is a complex
+        logistics operation spanning 150+ countries — customs compliance, HS classification, duty calculation, IP verification,
         shipping optimization, and tour timeline planning. This is currently done manually, expensively, and inaccurately.
         </p>
         <p style="color:rgba(232,232,240,0.8); font-size:16px; line-height:1.7;">
@@ -1164,62 +670,41 @@ with tab6:
     """, unsafe_allow_html=True)
 
     col1, col2, col3 = st.columns(3)
-
     with col1:
         st.markdown("""
         <div class="metric-card" style="text-align:left; padding:24px;">
             <div style="font-size:24px; margin-bottom:12px;">🎁</div>
             <div style="font-weight:600; color:#a78bfa; margin-bottom:8px;">Phase 1 — Logistics Intelligence</div>
             <div style="font-size:13px; color:rgba(232,232,240,0.7); line-height:1.6;">
-            • HS/HTS customs classification<br>
-            • Import duty estimation<br>
-            • Documentation requirements<br>
-            • IP & brand risk analysis<br>
-            • Shipment readiness scoring
+            • HS/HTS customs classification<br>• Import duty estimation<br>• Documentation requirements<br>• IP & brand risk analysis<br>• Shipment readiness scoring
             </div>
         </div>
         """, unsafe_allow_html=True)
-
     with col2:
         st.markdown("""
         <div class="metric-card" style="text-align:left; padding:24px;">
             <div style="font-size:24px; margin-bottom:12px;">🎤</div>
             <div style="font-weight:600; color:#60a5fa; margin-bottom:8px;">Phase 2 — Tour Operations AI</div>
             <div style="font-size:13px; color:rgba(232,232,240,0.7); line-height:1.6;">
-            • Multi-city tour planning<br>
-            • Production timeline optimizer<br>
-            • Local sourcing intelligence<br>
-            • Venue requirements database<br>
-            • Cost optimization engine
+            • Multi-city tour planning<br>• Production timeline optimizer<br>• Local sourcing intelligence<br>• Venue requirements database<br>• Cost optimization engine
             </div>
         </div>
         """, unsafe_allow_html=True)
-
     with col3:
         st.markdown("""
         <div class="metric-card" style="text-align:left; padding:24px;">
             <div style="font-size:24px; margin-bottom:12px;">🤖</div>
             <div style="font-weight:600; color:#34d399; margin-bottom:8px;">Phase 3 — Full Industry OS</div>
             <div style="font-size:13px; color:rgba(232,232,240,0.7); line-height:1.6;">
-            • Fan demand prediction<br>
-            • AI fan interaction system<br>
-            • Content localisation engine<br>
-            • Revenue forecasting by market<br>
-            • Artist schedule optimisation
+            • Fan demand prediction<br>• AI fan interaction system<br>• Content localisation engine<br>• Revenue forecasting by market<br>• Artist schedule optimisation
             </div>
         </div>
         """, unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
-
     st.markdown("#### 🎯 Target Clients")
     col1, col2, col3, col4 = st.columns(4)
-    clients = [
-        ("HYBE", "BTS, Stray Kids, NewJeans", "Active conversation"),
-        ("JYP Entertainment", "Stray Kids, TWICE, ITZY", "Outreach initiated"),
-        ("SM Entertainment", "aespa, EXO, NCT", "Identified"),
-        ("YG Entertainment", "BLACKPINK, BIGBANG", "Identified"),
-    ]
+    clients = [("HYBE", "BTS, Stray Kids, NewJeans", "Active conversation"), ("JYP Entertainment", "Stray Kids, TWICE, ITZY", "Outreach initiated"), ("SM Entertainment", "aespa, EXO, NCT", "Identified"), ("YG Entertainment", "BLACKPINK, BIGBANG", "Identified")]
     for col, (name, artists, status) in zip([col1, col2, col3, col4], clients):
         with col:
             st.markdown(f"""
@@ -1235,15 +720,14 @@ with tab6:
     <div style="background:rgba(52,211,153,0.08); border:1px solid rgba(52,211,153,0.25); border-radius:12px; padding:20px;">
         <strong style="color:#34d399;">Research Context</strong>
         <p style="color:rgba(232,232,240,0.7); margin:8px 0 0 0; font-size:14px;">
-        Narae is built on peer-reviewed research published on SSRN examining AI reliability in structured classification tasks 
-        (SSRN Top 10 Downloads — Labor Markets category). The LLM Customs Classifier evaluation framework benchmarks 
+        Narae is built on peer-reviewed research published on SSRN examining AI reliability in structured classification tasks
+        (SSRN Top 10 Downloads — Labor Markets category). The LLM Customs Classifier evaluation framework benchmarks
         hallucination rates in HS code classification — directly addressing alignment challenges in high-stakes AI deployments.
         This positions Narae not just as a product but as applied AI research in the entertainment logistics domain.
         </p>
     </div>
     """, unsafe_allow_html=True)
 
-# Footer
 st.markdown("---")
 st.markdown("""
 <div style="text-align:center; padding:20px; color:rgba(232,232,240,0.3); font-size:12px;">
