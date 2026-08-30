@@ -419,7 +419,28 @@ with tab3:
 
     tour_cities = []
     num_cities = st.number_input("Number of Tour Cities", min_value=1, max_value=15, value=5)
-    city_options = list(CUSTOMS_DAYS_TOUR.keys())
+    # Tour locations are explicitly labeled as CITY, COUNTRY.
+# Customs timelines are stored by country because customs clearance
+# is determined by destination country, not city.
+TOUR_LOCATIONS = {
+    "New York, United States": {"city": "New York", "country": "United States", "customs_days": 4},
+    "Los Angeles, United States": {"city": "Los Angeles", "country": "United States", "customs_days": 4},
+    "London, United Kingdom": {"city": "London", "country": "United Kingdom", "customs_days": 3},
+    "Berlin, Germany": {"city": "Berlin", "country": "Germany", "customs_days": 3},
+    "Paris, France": {"city": "Paris", "country": "France", "customs_days": 3},
+    "Tokyo, Japan": {"city": "Tokyo", "country": "Japan", "customs_days": 3},
+    "Sydney, Australia": {"city": "Sydney", "country": "Australia", "customs_days": 4},
+    "Toronto, Canada": {"city": "Toronto", "country": "Canada", "customs_days": 3},
+    "São Paulo, Brazil": {"city": "São Paulo", "country": "Brazil", "customs_days": 15},
+    "Buenos Aires, Argentina": {"city": "Buenos Aires", "country": "Argentina", "customs_days": 18},
+    "Mexico City, Mexico": {"city": "Mexico City", "country": "Mexico", "customs_days": 5},
+    "Singapore, Singapore": {"city": "Singapore", "country": "Singapore", "customs_days": 2},
+    "Jakarta, Indonesia": {"city": "Jakarta", "country": "Indonesia", "customs_days": 7},
+    "Bangkok, Thailand": {"city": "Bangkok", "country": "Thailand", "customs_days": 5},
+    "Manila, Philippines": {"city": "Manila", "country": "Philippines", "customs_days": 6},
+}
+
+city_options = list(TOUR_LOCATIONS.keys())
 
     for i in range(int(num_cities)):
         col1, col2 = st.columns(2)
