@@ -399,7 +399,7 @@ with tab3:
     for i in range(int(num_cities)):
         col1, col2 = st.columns(2)
         with col1:
-            city = st.selectbox(f"City {i+1}", city_options, key=f"city_{i}")
+            st.selectbox(f"Destination Country {i+1}", city_options, key=f"city_{i}")
         with col2:
             tour_date = st.date_input(f"Show Date {i+1}", value=date.today() + timedelta(days=30 + i*7), key=f"date_{i}")
         tour_cities.append({"city": city, "date": tour_date})
