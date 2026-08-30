@@ -92,7 +92,22 @@ with tab1:
     col1, col2 = st.columns([2, 1])
     with col1:
         product = st.text_area("Product Description", placeholder="e.g. BTS Map of the Soul cotton hoodie, 380gsm, knitted cotton, embroidered logo", height=100)
-        country = st.selectbox("Destination Country", ["United States","United Kingdom","Germany","France","Japan","Australia","Canada","Brazil","Argentina","India","Singapore","Mexico","Netherlands","Spain","Italy","South Korea"])
+       country = st.selectbox("Destination Country", ["United States","United Kingdom","Germany","France","Japan","Australia","Canada","Brazil","Argentina","India","Singapore","Mexico","Netherlands","Spain","Italy","South Korea"])
+
+origin_country = st.selectbox(
+    "Country of Origin",
+    [
+        "South Korea",
+        "China",
+        "Vietnam",
+        "Japan",
+        "United States",
+        "India",
+        "Thailand",
+        "Indonesia",
+        "Other"
+    ]
+)
     with col2:
         value = st.number_input("Shipment Value (USD)", min_value=0.0, value=500.0, step=50.0)
         quantity = st.number_input("Quantity (units)", min_value=1, value=100, step=1)
