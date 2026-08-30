@@ -165,6 +165,7 @@ Your task is to provide a PRELIMINARY AI-ASSISTED assessment.
 Shipment information:
 Product: {product}
 Destination country: {country}
+Country of origin: {origin_country}
 Shipment value: ${value:,.2f} USD
 Quantity: {quantity} units
 Artist / IP: {artist if artist else "Not specified"}
