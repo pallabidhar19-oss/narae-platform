@@ -1,6 +1,12 @@
 import streamlit as st
 import openai
+import io
 from datetime import date, timedelta, datetime
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.enums import TA_CENTER
+from reportlab.lib.units import inch
 
 # Page config
 st.set_page_config(
@@ -248,87 +254,467 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
 # ============================================================
 with tab1:
     st.markdown("### 🎁 K-Entertainment Customs Intelligence Engine")
-    st.markdown("*AI-powered HS code classification, duty estimation, documentation requirements, and customs risk analysis*")
+    st.markdown(
+        "*AI-assisted HS/HTS classification, duty estimation, documentation "
+        "requirements, and customs risk analysis*"
+    )
 
     col1, col2 = st.columns([2, 1])
+
     with col1:
-        product = st.text_input("Product Description", placeholder="e.g. BTS Map of the Soul cotton hoodie, 380gsm, with embroidered logo")
-        country = st.selectbox("Destination Country", [
-            "United States", "United Kingdom", "Germany", "France", "Japan",
-            "Australia", "Canada", "Brazil", "Argentina", "India", "Singapore",
-            "Mexico", "Netherlands", "Spain", "Italy", "South Korea"
-        ])
+        product = st.text_area(
+            "Product Description",
+            placeholder=(
+                "e.g. BTS Map of the Soul cotton hoodie, "
+                "380gsm, knitted cotton, embroidered logo"
+            ),
+            height=100
+        )
+
+        country = st.selectbox(
+            "Destination Country",
+            [
+                "United States",
+                "United Kingdom",
+                "Germany",
+                "France",
+                "Japan",
+                "Australia",
+                "Canada",
+                "Brazil",
+                "Argentina",
+                "India",
+                "Singapore",
+                "Mexico",
+                "Netherlands",
+                "Spain",
+                "Italy",
+                "South Korea"
+            ]
+        )
+
     with col2:
-        value = st.number_input("Shipment Value (USD)", min_value=0.0, value=500.0, step=50.0)
-        quantity = st.number_input("Quantity (units)", min_value=1, value=100)
-        artist = st.text_input("Artist/IP Name (optional)", placeholder="e.g. BTS, Stray Kids")
+        value = st.number_input(
+            "Shipment Value (USD)",
+            min_value=0.0,
+            value=500.0,
+            step=50.0
+        )
 
-    if st.button("🔍 Run Customs Analysis", key="customs_btn"):
-        if not client:
-            st.error("OpenAI API key not configured")
-        elif product:
-            with st.spinner("Running AI customs classification..."):
-                prompt = f"""You are a senior customs classification expert specialising in K-entertainment merchandise.
+        quantity = st.number_input(
+            "Quantity (units)",
+            min_value=1,
+            value=100,
+            step=1
+        )
 
-Analyse this shipment:
-- Product: {product}
-- Destination: {country}
-- Value: ${value} USD
-- Quantity: {quantity} units
-- Artist/IP: {artist if artist else 'Not specified'}
+        artist = st.text_input(
+            "Artist / IP Name (optional)",
+            placeholder="e.g. BTS, Stray Kids"
+        )
 
-Provide a comprehensive analysis with these exact sections:
+    st.info(
+        "Narae provides preliminary AI-assisted customs intelligence. "
+        "Final HS classification, duty treatment, and import requirements "
+        "should be verified against the destination country's official "
+        "customs/tariff authority or a licensed customs professional."
+    )
 
-**1. HS/HTS CLASSIFICATION**
-- Primary HS Code (6-digit international)
-- HTS Code for {country} (if applicable, 8-10 digit)
-- Classification reasoning
-- Alternative codes to consider
+    # --------------------------------------------------------
+    # PDF REPORT GENERATOR
+    # --------------------------------------------------------
+    def create_customs_pdf(
+        product,
+        country,
+        value,
+        quantity,
+        artist,
+        result
+    ):
+        buffer = io.BytesIO()
 
-**2. IMPORT DUTY ESTIMATE**
-- Duty rate (%)
-- Estimated duty on stated value: $X
-- Total landed cost estimate
-- Any preferential rates available (FTA, GSP)
+        doc = SimpleDocTemplate(
+            buffer,
+            pagesize=letter,
+            rightMargin=50,
+            leftMargin=50,
+            topMargin=50,
+            bottomMargin=50
+        )
 
-**3. REQUIRED DOCUMENTATION**
-List each document required for this shipment to {country}
+        styles = getSampleStyleSheet()
 
-**4. CUSTOMS RISKS**
-Rate each risk as HIGH/MEDIUM/LOW:
-- Misclassification risk
-- Under-valuation risk
-- IP/brand authenticity risk (especially for licensed artist merchandise)
-- Labelling compliance risk
-- Import restriction risk
+        title_style = ParagraphStyle(
+            "NaraeTitle",
+            parent=styles["Title"],
+            alignment=TA_CENTER,
+            fontSize=20,
+            spaceAfter=8
+        )
 
-**5. IP & BRAND CONSIDERATIONS**
-Specific risks for licensed {artist if artist else 'K-entertainment'} merchandise
+        subtitle_style = ParagraphStyle(
+            "NaraeSubtitle",
+            parent=styles["Normal"],
+            alignment=TA_CENTER,
+            fontSize=10,
+            spaceAfter=20
+        )
 
-**6. RECOMMENDED NEXT STEPS**
-Prioritised action list
+        body_style = ParagraphStyle(
+            "NaraeBody",
+            parent=styles["BodyText"],
+            fontSize=9,
+            leading=13,
+            spaceAfter=7
+        )
 
-Be specific, accurate, and practical."""
+        story = []
 
-                response = client.chat.completions.create(
-                    model="gpt-3.5-turbo",
-                    messages=[{"role": "user", "content": prompt}],
-                    max_tokens=1200
+        story.append(
+            Paragraph(
+                "나래 Narae",
+                title_style
+            )
+        )
+
+        story.append(
+            Paragraph(
+                "K-Entertainment Customs Intelligence Report",
+                subtitle_style
+            )
+        )
+
+        story.append(
+            Paragraph(
+                f"<b>Product:</b> {product}",
+                body_style
+            )
+        )
+
+        story.append(
+            Paragraph(
+                f"<b>Destination:</b> {country}",
+                body_style
+            )
+        )
+
+        story.append(
+            Paragraph(
+                f"<b>Shipment Value:</b> ${value:,.2f} USD",
+                body_style
+            )
+        )
+
+        story.append(
+            Paragraph(
+                f"<b>Quantity:</b> {quantity} units",
+                body_style
+            )
+        )
+
+        story.append(
+            Paragraph(
+                f"<b>Artist / IP:</b> "
+                f"{artist if artist else 'Not specified'}",
+                body_style
+            )
+        )
+
+        story.append(
+            Paragraph(
+                f"<b>Generated:</b> "
+                f"{datetime.now().strftime('%Y-%m-%d %H:%M')}",
+                body_style
+            )
+        )
+
+        story.append(Spacer(1, 12))
+
+        story.append(
+            Paragraph(
+                "PRELIMINARY AI-ASSISTED ANALYSIS",
+                styles["Heading2"]
+            )
+        )
+
+        # Convert markdown-style output into PDF-friendly paragraphs
+        for line in result.split("\n"):
+            line = line.strip()
+
+            if not line:
+                story.append(Spacer(1, 6))
+                continue
+
+            line = line.replace("&", "&amp;")
+            line = line.replace("<", "&lt;")
+            line = line.replace(">", "&gt;")
+
+            if line.startswith("**") and line.endswith("**"):
+                clean_line = line.replace("**", "")
+                story.append(
+                    Paragraph(
+                        clean_line,
+                        styles["Heading3"]
+                    )
+                )
+            elif line.startswith("- "):
+                clean_line = "• " + line[2:]
+                story.append(
+                    Paragraph(
+                        clean_line,
+                        body_style
+                    )
+                )
+            else:
+                clean_line = line.replace("**", "")
+                story.append(
+                    Paragraph(
+                        clean_line,
+                        body_style
+                    )
                 )
 
-            result = response.choices[0].message.content
-            st.markdown('<div class="result-box">', unsafe_allow_html=True)
-            st.markdown(result)
-            st.markdown('</div>', unsafe_allow_html=True)
+        story.append(Spacer(1, 15))
 
-            st.download_button(
-                "📥 Download Analysis Report",
-                data=f"NARAE CUSTOMS ANALYSIS\n{'='*50}\nProduct: {product}\nDestination: {country}\nValue: ${value}\nDate: {datetime.now().strftime('%Y-%m-%d %H:%M')}\n\n{result}",
-                file_name=f"narae_customs_{country.replace(' ','_')}_{datetime.now().strftime('%Y%m%d')}.txt",
-                mime="text/plain"
+        story.append(
+            Paragraph(
+                "<b>Important:</b> This report is an AI-assisted "
+                "preliminary assessment and is not a customs ruling, "
+                "legal opinion, or binding tariff determination. "
+                "Classification, duty rates, preferential treatment, "
+                "and documentation requirements should be verified "
+                "before shipment.",
+                body_style
             )
+        )
+
+        doc.build(story)
+
+        buffer.seek(0)
+        return buffer
+
+
+    # --------------------------------------------------------
+    # RUN ANALYSIS
+    # --------------------------------------------------------
+    if st.button(
+        "🔍 Run Customs Analysis",
+        key="customs_btn"
+    ):
+
+        if client is None:
+            st.error(
+                "OpenAI API key is not configured. "
+                "Please check your Streamlit Secrets."
+            )
+
+        elif not product.strip():
+            st.warning(
+                "Please enter a detailed product description "
+                "before running the analysis."
+            )
+
         else:
-            st.warning("Please enter a product description")
+
+            with st.spinner(
+                "Narae is analyzing classification, duty, "
+                "documentation, and customs risk..."
+            ):
+
+                prompt = f"""
+You are a senior international trade and customs intelligence
+analyst specializing in K-entertainment merchandise.
+
+Your task is to provide a PRELIMINARY AI-ASSISTED assessment.
+
+Shipment information:
+
+Product:
+{product}
+
+Destination country:
+{country}
+
+Shipment value:
+${value:,.2f} USD
+
+Quantity:
+{quantity} units
+
+Artist / IP:
+{artist if artist else "Not specified"}
+
+IMPORTANT ACCURACY RULES:
+
+1. Do not present uncertain information as a guaranteed customs ruling.
+2. Clearly distinguish between:
+   - established classification logic,
+   - estimated duty treatment,
+   - information that requires official verification.
+3. Do not invent an exact tariff rate if you cannot confidently establish it.
+4. If an exact duty rate depends on origin, material composition,
+   trade agreement eligibility, tariff schedule, or additional product
+   characteristics, explicitly say so.
+5. For the United States, distinguish the international 6-digit HS code
+   from the country-specific HTS classification.
+6. Consider country of origin and preferential trade agreements where relevant.
+7. Treat IP risk separately from customs classification.
+8. Give practical next steps for an operations/logistics team.
+
+Return the following exact sections:
+
+**1. HS/HTS CLASSIFICATION**
+
+- Primary 6-digit HS code
+- Country-specific tariff code if reasonably identifiable
+- Classification reasoning
+- Key product facts that could change the classification
+- Alternative codes to investigate
+- Confidence level: HIGH / MEDIUM / LOW
+
+**2. IMPORT DUTY ESTIMATE**
+
+- Estimated duty treatment
+- Estimated duty rate or range, if supportable
+- Estimated duty on the stated shipment value
+- Important assumptions
+- Potential preferential treatment or FTA considerations
+- What must be verified before shipment
+
+Do NOT fabricate an exact duty rate.
+
+**3. REQUIRED DOCUMENTATION**
+
+List the likely documents required for this shipment.
+
+Separate them into:
+
+- Core shipping documents
+- Customs documents
+- Origin / preferential-treatment documents
+- IP / licensing documents
+- Country-specific documents where relevant
+
+**4. CUSTOMS RISKS**
+
+Rate each as HIGH / MEDIUM / LOW:
+
+- Misclassification risk
+- Customs valuation / under-valuation risk
+- IP / brand authenticity risk
+- Labelling compliance risk
+- Import restriction risk
+- Documentation risk
+
+Give one short explanation for each.
+
+**5. IP & BRAND CONSIDERATIONS**
+
+Assess the implications of importing
+{artist if artist else "artist-branded K-entertainment"} merchandise.
+
+Do not assume that merchandise is licensed merely because
+the artist name is provided.
+
+Identify what evidence would establish authorization.
+
+**6. OPERATIONAL RED FLAGS**
+
+Identify the most important things an operations team should verify
+before the shipment is released.
+
+**7. RECOMMENDED NEXT STEPS**
+
+Give a prioritized action list:
+
+1. Immediate verification
+2. Documentation
+3. Customs preparation
+4. IP / licensing verification
+5. Final shipment approval
+
+**8. EXECUTIVE VERDICT**
+
+Provide:
+
+- Overall risk: LOW / MEDIUM / HIGH
+- Classification confidence: LOW / MEDIUM / HIGH
+- Recommended action:
+  GO / PROCEED WITH VERIFICATION / HOLD
+
+End with a short explanation suitable for an operations manager.
+"""
+
+                try:
+
+                    response = client.chat.completions.create(
+                        model="gpt-5-mini",
+                        messages=[
+                            {
+                                "role": "user",
+                                "content": prompt
+                            }
+                        ]
+                    )
+
+                    result = response.choices[0].message.content
+
+                    st.markdown("---")
+
+                    st.markdown(
+                        "#### 📋 Customs Intelligence Report"
+                    )
+
+                    st.markdown(
+                        '<div class="result-box">',
+                        unsafe_allow_html=True
+                    )
+
+                    st.markdown(result)
+
+                    st.markdown(
+                        '</div>',
+                        unsafe_allow_html=True
+                    )
+
+                    # ------------------------------------------------
+                    # PDF DOWNLOAD
+                    # ------------------------------------------------
+                    pdf_file = create_customs_pdf(
+                        product=product,
+                        country=country,
+                        value=value,
+                        quantity=quantity,
+                        artist=artist,
+                        result=result
+                    )
+
+                    st.download_button(
+                        label="📥 Download PDF Report",
+                        data=pdf_file,
+                        file_name=(
+                            f"narae_customs_"
+                            f"{country.replace(' ', '_')}_"
+                            f"{datetime.now().strftime('%Y%m%d')}.pdf"
+                        ),
+                        mime="application/pdf"
+                    )
+
+                    st.caption(
+                        "PDF generated by Narae • "
+                        "Preliminary AI-assisted analysis • "
+                        "Verify tariff and customs requirements before shipment."
+                    )
+
+                except Exception as e:
+
+                    st.error(
+                        "The customs analysis could not be completed."
+                    )
+
+                    st.caption(
+                        f"Technical detail: {str(e)}"
+                    )
 
 # ============================================================
 # TAB 2 — SHIPPING OPTIMIZER
