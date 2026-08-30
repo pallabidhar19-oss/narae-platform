@@ -115,7 +115,7 @@ origin_country = st.selectbox(
 
     st.info("Narae provides preliminary AI-assisted customs intelligence. Final HS classification, duty treatment, and import requirements should be verified against the destination country's official customs/tariff authority or a licensed customs professional.")
 
-    def create_customs_pdf(product, country, value, quantity, artist, result):
+    def create_customs_pdf(product, country, origin_country, value, quantity, artist, result):
         buffer = io.BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=50, leftMargin=50, topMargin=50, bottomMargin=50)
         styles = getSampleStyleSheet()
