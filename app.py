@@ -7,6 +7,14 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.units import inch
+from xml.sax.saxutils import escape
+
+
+def pdf_safe(text):
+    """Escape user-controlled text before it goes into a ReportLab Paragraph,
+    so characters like & < > can't break or inject markup into the PDF."""
+    return escape(str(text))
+
 
 st.set_page_config(
     page_title="Narae — K-Entertainment Intelligence Platform",
@@ -69,7 +77,7 @@ with col3:
 with col4:
     st.markdown('<div class="metric-card"><p class="metric-number">6</p><p class="metric-label">AI Modules</p></div>', unsafe_allow_html=True)
 with col5:
-    st.markdown('<div class="metric-card"><p class="metric-number">Big 4</p><p class="metric-label">Target Clients</p></div>', unsafe_allow_html=True)
+    st.markdown('<div class="metric-card"><p class="metric-number">4</p><p class="metric-label">Target Agencies</p></div>', unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
@@ -92,22 +100,21 @@ with tab1:
     col1, col2 = st.columns([2, 1])
     with col1:
         product = st.text_area("Product Description", placeholder="e.g. BTS Map of the Soul cotton hoodie, 380gsm, knitted cotton, embroidered logo", height=100)
-       country = st.selectbox("Destination Country", ["United States","United Kingdom","Germany","France","Japan","Australia","Canada","Brazil","Argentina","India","Singapore","Mexico","Netherlands","Spain","Italy","South Korea"])
-
-origin_country = st.selectbox(
-    "Country of Origin",
-    [
-        "South Korea",
-        "China",
-        "Vietnam",
-        "Japan",
-        "United States",
-        "India",
-        "Thailand",
-        "Indonesia",
-        "Other"
-    ]
-)
+        country = st.selectbox("Destination Country", ["United States","United Kingdom","Germany","France","Japan","Australia","Canada","Brazil","Argentina","India","Singapore","Mexico","Netherlands","Spain","Italy","South Korea"])
+        origin_country = st.selectbox(
+            "Country of Origin",
+            [
+                "South Korea",
+                "China",
+                "Vietnam",
+                "Japan",
+                "United States",
+                "India",
+                "Thailand",
+                "Indonesia",
+                "Other"
+            ]
+        )
     with col2:
         value = st.number_input("Shipment Value (USD)", min_value=0.0, value=500.0, step=50.0)
         quantity = st.number_input("Quantity (units)", min_value=1, value=100, step=1)
@@ -125,12 +132,12 @@ origin_country = st.selectbox(
         story = []
         story.append(Paragraph("나래 Narae", title_style))
         story.append(Paragraph("K-Entertainment Customs Intelligence Report", subtitle_style))
-        story.append(Paragraph(f"<b>Product:</b> {product}", body_style))
-        story.append(Paragraph(f"<b>Destination:</b> {country}", body_style))
-        story.append(Paragraph(f"<b>Country of Origin:</b> {origin_country}", body_style))
+        story.append(Paragraph(f"<b>Product:</b> {pdf_safe(product)}", body_style))
+        story.append(Paragraph(f"<b>Destination:</b> {pdf_safe(country)}", body_style))
+        story.append(Paragraph(f"<b>Country of Origin:</b> {pdf_safe(origin_country)}", body_style))
         story.append(Paragraph(f"<b>Shipment Value:</b> ${value:,.2f} USD", body_style))
         story.append(Paragraph(f"<b>Quantity:</b> {quantity} units", body_style))
-        story.append(Paragraph(f"<b>Artist / IP:</b> {artist if artist else 'Not specified'}", body_style))
+        story.append(Paragraph(f"<b>Artist / IP:</b> {pdf_safe(artist) if artist else 'Not specified'}", body_style))
         story.append(Paragraph(f"<b>Generated:</b> {datetime.now().strftime('%Y-%m-%d %H:%M')}", body_style))
         story.append(Spacer(1, 12))
         story.append(Paragraph("PRELIMINARY AI-ASSISTED ANALYSIS", styles["Heading2"]))
@@ -139,7 +146,7 @@ origin_country = st.selectbox(
             if not line:
                 story.append(Spacer(1, 6))
                 continue
-            line = line.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+            line = escape(line)
             if line.startswith("**") and line.endswith("**"):
                 story.append(Paragraph(line.replace("**", ""), styles["Heading3"]))
             elif line.startswith("- "):
@@ -315,17 +322,20 @@ with tab2:
             air = AIR_RATES[ship_dest]
             sea = SEA_RATES[ship_dest]
 
+            customs_days = air["customs"]
+
             air_cost = weight * air["rate"]
-            air_total = air["transit"] + air["customs"]
+            air_total = air["transit"] + customs_days
             air_ship_by = required_date - timedelta(days=air_total)
             air_viable = days_available >= air_total
 
             sea_cost = max(weight * sea["rate"], sea["min"])
-            sea_total = sea["transit"] + air["customs"]
+            sea_total = sea["transit"] + customs_days
             sea_ship_by = required_date - timedelta(days=sea_total)
             sea_viable = days_available >= sea_total
 
             st.markdown("---")
+            st.caption(f"Shipment context: {event_type} · Cargo value ${cargo_value:,.0f} USD")
             col_air, col_sea = st.columns(2)
 
             with col_air:
@@ -333,7 +343,7 @@ with tab2:
                 st.markdown(f"### ✈️ Air Freight — {status}")
                 st.metric("Estimated Cost", f"${air_cost:,.0f}")
                 st.metric("Transit Time", f"{air['transit']} days")
-                st.metric("Customs Clearance", f"{air['customs']} days")
+                st.metric("Customs Clearance", f"{customs_days} days")
                 st.metric("Total Days Needed", f"{air_total} days")
                 if air_viable:
                     st.success(f"Ship by: {air_ship_by.strftime('%B %d, %Y')}")
@@ -345,7 +355,7 @@ with tab2:
                 st.markdown(f"### 🚢 Sea Freight — {status}")
                 st.metric("Estimated Cost", f"${sea_cost:,.0f}")
                 st.metric("Transit Time", f"{sea['transit']} days")
-                st.metric("Customs Clearance", f"{air['customs']} days")
+                st.metric("Customs Clearance", f"{customs_days} days")
                 st.metric("Total Days Needed", f"{sea_total} days")
                 if sea_viable:
                     st.success(f"Ship by: {sea_ship_by.strftime('%B %d, %Y')}")
@@ -397,12 +407,27 @@ with tab3:
     st.markdown("### 🎤 Artist Tour Merchandise Logistics Planner")
     st.markdown("*Plan merchandise logistics across tour dates with AI-powered timeline intelligence*")
 
-    CUSTOMS_DAYS_TOUR = {
-        "United States": 4, "United Kingdom": 3, "Germany": 3,
-        "France": 3, "Japan": 3, "Australia": 4, "Canada": 3,
-        "Brazil": 15, "Argentina": 18, "Mexico": 5, "Singapore": 2,
-        "Indonesia": 7, "Thailand": 5, "Philippines": 6
+    # Tour locations are explicitly labeled as CITY, COUNTRY.
+    # Customs timelines are stored by country because customs clearance
+    # is determined by destination country, not city.
+    TOUR_LOCATIONS = {
+        "New York, United States": {"city": "New York", "country": "United States", "customs_days": 4},
+        "Los Angeles, United States": {"city": "Los Angeles", "country": "United States", "customs_days": 4},
+        "London, United Kingdom": {"city": "London", "country": "United Kingdom", "customs_days": 3},
+        "Berlin, Germany": {"city": "Berlin", "country": "Germany", "customs_days": 3},
+        "Paris, France": {"city": "Paris", "country": "France", "customs_days": 3},
+        "Tokyo, Japan": {"city": "Tokyo", "country": "Japan", "customs_days": 3},
+        "Sydney, Australia": {"city": "Sydney", "country": "Australia", "customs_days": 4},
+        "Toronto, Canada": {"city": "Toronto", "country": "Canada", "customs_days": 3},
+        "São Paulo, Brazil": {"city": "São Paulo", "country": "Brazil", "customs_days": 15},
+        "Buenos Aires, Argentina": {"city": "Buenos Aires", "country": "Argentina", "customs_days": 18},
+        "Mexico City, Mexico": {"city": "Mexico City", "country": "Mexico", "customs_days": 5},
+        "Singapore, Singapore": {"city": "Singapore", "country": "Singapore", "customs_days": 2},
+        "Jakarta, Indonesia": {"city": "Jakarta", "country": "Indonesia", "customs_days": 7},
+        "Bangkok, Thailand": {"city": "Bangkok", "country": "Thailand", "customs_days": 5},
+        "Manila, Philippines": {"city": "Manila", "country": "Philippines", "customs_days": 6},
     }
+    city_options = list(TOUR_LOCATIONS.keys())
 
     col1, col2 = st.columns(2)
     with col1:
@@ -419,36 +444,20 @@ with tab3:
 
     tour_cities = []
     num_cities = st.number_input("Number of Tour Cities", min_value=1, max_value=15, value=5)
-    # Tour locations are explicitly labeled as CITY, COUNTRY.
-# Customs timelines are stored by country because customs clearance
-# is determined by destination country, not city.
-TOUR_LOCATIONS = {
-    "New York, United States": {"city": "New York", "country": "United States", "customs_days": 4},
-    "Los Angeles, United States": {"city": "Los Angeles", "country": "United States", "customs_days": 4},
-    "London, United Kingdom": {"city": "London", "country": "United Kingdom", "customs_days": 3},
-    "Berlin, Germany": {"city": "Berlin", "country": "Germany", "customs_days": 3},
-    "Paris, France": {"city": "Paris", "country": "France", "customs_days": 3},
-    "Tokyo, Japan": {"city": "Tokyo", "country": "Japan", "customs_days": 3},
-    "Sydney, Australia": {"city": "Sydney", "country": "Australia", "customs_days": 4},
-    "Toronto, Canada": {"city": "Toronto", "country": "Canada", "customs_days": 3},
-    "São Paulo, Brazil": {"city": "São Paulo", "country": "Brazil", "customs_days": 15},
-    "Buenos Aires, Argentina": {"city": "Buenos Aires", "country": "Argentina", "customs_days": 18},
-    "Mexico City, Mexico": {"city": "Mexico City", "country": "Mexico", "customs_days": 5},
-    "Singapore, Singapore": {"city": "Singapore", "country": "Singapore", "customs_days": 2},
-    "Jakarta, Indonesia": {"city": "Jakarta", "country": "Indonesia", "customs_days": 7},
-    "Bangkok, Thailand": {"city": "Bangkok", "country": "Thailand", "customs_days": 5},
-    "Manila, Philippines": {"city": "Manila", "country": "Philippines", "customs_days": 6},
-}
-
-city_options = list(TOUR_LOCATIONS.keys())
 
     for i in range(int(num_cities)):
         col1, col2 = st.columns(2)
         with col1:
-            st.selectbox(f"Destination Country {i+1}", city_options, key=f"city_{i}")
+            selected_location = st.selectbox(f"Destination City {i+1}", city_options, key=f"city_{i}")
         with col2:
             tour_date = st.date_input(f"Show Date {i+1}", value=date.today() + timedelta(days=30 + i*7), key=f"date_{i}")
-        tour_cities.append({"city": city, "date": tour_date})
+        location_data = TOUR_LOCATIONS[selected_location]
+        tour_cities.append({
+            "city": location_data["city"],
+            "country": location_data["country"],
+            "customs_days": location_data["customs_days"],
+            "date": tour_date
+        })
 
     if st.button("🗓️ Generate Tour Logistics Plan", key="tour_btn"):
         st.markdown("---")
@@ -459,8 +468,9 @@ city_options = list(TOUR_LOCATIONS.keys())
 
         for stop in tour_cities:
             city = stop["city"]
+            country = stop["country"]
             tour_date = stop["date"]
-            customs_days = CUSTOMS_DAYS_TOUR.get(city, 5)
+            customs_days = stop["customs_days"]
             air_transit = 3
             total_days_needed = air_transit + customs_days
             ship_by = tour_date - timedelta(days=total_days_needed)
@@ -476,12 +486,12 @@ city_options = list(TOUR_LOCATIONS.keys())
             else:
                 status = "🟢 ON TRACK"
 
-            results.append({"city": city, "tour_date": tour_date, "ship_by": ship_by, "prod_buffer": prod_to_ship, "freight_cost": freight_cost, "status": status, "customs_days": customs_days})
+            results.append({"city": city, "country": country, "tour_date": tour_date, "ship_by": ship_by, "prod_buffer": prod_to_ship, "freight_cost": freight_cost, "status": status, "customs_days": customs_days})
 
         for r in results:
             col1, col2, col3, col4 = st.columns([2, 2, 2, 1])
             with col1:
-                st.markdown(f"**{r['city']}**")
+                st.markdown(f"**{r['city']}, {r['country']}**")
                 st.caption(f"Show: {r['tour_date'].strftime('%b %d, %Y')}")
             with col2:
                 st.markdown(f"Ship by: **{r['ship_by'].strftime('%b %d')}**")
@@ -501,7 +511,7 @@ city_options = list(TOUR_LOCATIONS.keys())
         else:
             st.error("⚠️ Some dates are at risk. Consider earlier production start or local sourcing for critical markets.")
 
-        if any(r['city'] in ["Brazil", "Argentina"] for r in results):
+        if any(r['country'] in ["Brazil", "Argentina"] for r in results):
             st.markdown('<div class="risk-high">🚨 High-duty markets detected (Brazil/Argentina). These require advance customs strategy and CFO approval. Narae recommends engaging a local customs broker 8 weeks before each show date.</div>', unsafe_allow_html=True)
 
 # ============================================================
@@ -565,15 +575,19 @@ Specific steps to reduce risk for this shipment
 **7. VERDICT**
 Clear GO / PROCEED WITH CAUTION / DO NOT SHIP recommendation"""
 
-                # CHANGE 3: Updated model to gpt-5.6-luna, removed max_tokens
-                response = client.chat.completions.create(
-                    model="gpt-5.6-luna",
-                    messages=[{"role": "user", "content": prompt}]
-                )
-
-            st.markdown('<div class="result-box">', unsafe_allow_html=True)
-            st.markdown(response.choices[0].message.content)
-            st.markdown('</div>', unsafe_allow_html=True)
+                try:
+                    # NOTE: model id below is unverified — see summary.
+                    response = client.chat.completions.create(
+                        model="gpt-5.6-luna",
+                        messages=[{"role": "user", "content": prompt}]
+                    )
+                    result = response.choices[0].message.content
+                    st.markdown('<div class="result-box">', unsafe_allow_html=True)
+                    st.markdown(result)
+                    st.markdown('</div>', unsafe_allow_html=True)
+                except Exception as e:
+                    st.error("The IP risk analysis could not be completed.")
+                    st.caption(f"Technical detail: {str(e)}")
         else:
             st.warning("Please enter product and artist information")
 
@@ -587,7 +601,7 @@ with tab5:
     col1, col2, col3 = st.columns(3)
     with col1:
         sr_product = st.text_input("Product", placeholder="e.g. Photo cards set, official", key="sr_product")
-        sr_destination = st.selectbox("Destination", ["United States", "United Kingdom", "Germany", "Japan", "Brazil", "Australia", "Canada", "Singapore"], key="sr_dest")
+        sr_destination = st.selectbox("Destination", ["United States", "United Kingdom", "Germany", "Japan", "Brazil", "Argentina", "Australia", "Canada", "Singapore"], key="sr_dest")
         sr_value = st.number_input("Total Shipment Value (USD)", min_value=0.0, value=2000.0, key="sr_val")
     with col2:
         sr_weight = st.number_input("Weight (kg)", min_value=0.1, value=20.0, key="sr_wt")
@@ -619,7 +633,7 @@ with tab5:
 
         if sr_licensed == "Officially Licensed":
             score += 25
-            good.append("✅ Official license — customs risk minimized")
+            good.append("✅ Official license documentation — IP/authenticity risk reduced")
         elif sr_licensed == "Unknown":
             score += 10
             warnings.append("⚠️ License status unknown — obtain documentation")
@@ -648,10 +662,6 @@ with tab5:
         elif sr_broker == "Not yet engaged":
             score += 5
             warnings.append("⚠️ Engage customs broker before shipping")
-
-        if sr_value > 2500:
-            score += 5
-            good.append("✅ Commercial shipment value — proper customs handling required")
 
         score = max(0, min(100, score))
 
@@ -766,7 +776,7 @@ with tab6:
     <div style="background:rgba(52,211,153,0.08); border:1px solid rgba(52,211,153,0.25); border-radius:12px; padding:20px;">
         <strong style="color:#34d399;">Research Context</strong>
         <p style="color:rgba(232,232,240,0.7); margin:8px 0 0 0; font-size:14px;">
-        Narae is built on peer-reviewed research published on SSRN examining AI reliability in structured classification tasks
+        Narae is built on research available on SSRN examining AI reliability in structured classification tasks
         (SSRN Top 10 Downloads — Labor Markets category). The LLM Customs Classifier evaluation framework benchmarks
         hallucination rates in HS code classification — directly addressing alignment challenges in high-stakes AI deployments.
         This positions Narae not just as a product but as applied AI research in the entertainment logistics domain.
