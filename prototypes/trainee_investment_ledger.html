@@ -1,0 +1,292 @@
+<title>Trainee Investment Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@500;600;700&family=Work+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#f1eef3;
+  --surface:#ffffff;
+  --surface-2:#e7e1ee;
+  --ink:#1e1b24;
+  --ink-soft:#5b5568;
+  --border:#d7d1e0;
+  --accent:#6b4fa0;
+  --accent-soft:#ece3f7;
+  --accent-ink:#3e2c66;
+  --good:#277a54;
+  --good-soft:#e0f0e7;
+  --warn:#a6741a;
+  --warn-soft:#f6ecd7;
+  --critical:#ad3d3d;
+  --critical-soft:#f7dede;
+  --shadow: 0 1px 2px rgba(30,27,36,.06), 0 8px 22px rgba(30,27,36,.07);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14101a; --surface:#1d1826; --surface-2:#251e33;
+    --ink:#f1eef6; --ink-soft:#b2a9c2; --border:#342b47;
+    --accent:#c0a3e8; --accent-soft:#2a2140; --accent-ink:#e7dcf8;
+    --good:#54c088; --good-soft:#123423; --warn:#e0ab48; --warn-soft:#3a2c10;
+    --critical:#e2807a; --critical-soft:#3a1e1e;
+    --shadow: 0 1px 2px rgba(0,0,0,.35), 0 12px 30px rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14101a; --surface:#1d1826; --surface-2:#251e33;
+  --ink:#f1eef6; --ink-soft:#b2a9c2; --border:#342b47;
+  --accent:#c0a3e8; --accent-soft:#2a2140; --accent-ink:#e7dcf8;
+  --good:#54c088; --good-soft:#123423; --warn:#e0ab48; --warn-soft:#3a2c10;
+  --critical:#e2807a; --critical-soft:#3a1e1e;
+  --shadow: 0 1px 2px rgba(0,0,0,.35), 0 12px 30px rgba(0,0,0,.4);
+}
+
+*{ box-sizing:border-box; }
+body{ background:var(--bg); color:var(--ink); font-family:"Work Sans",system-ui,sans-serif; line-height:1.5; }
+.serif{ font-family:"Source Serif 4", Georgia, serif; }
+.mono{ font-family:"JetBrains Mono", ui-monospace, Menlo, monospace; }
+
+.wrap{ max-width:1160px; margin:0 auto; padding:28px 24px 64px; }
+
+.ribbon{
+  display:inline-flex; align-items:center; gap:8px;
+  font-family:"JetBrains Mono",monospace; font-size:11.5px; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--accent-ink); background:var(--accent-soft); border:1px solid var(--accent);
+  border-radius:5px; padding:5px 10px; margin-bottom:18px;
+}
+.ribbon .dot{ width:6px;height:6px;border-radius:50%; background:var(--accent); }
+
+header.masthead{ border-bottom:1px solid var(--border); padding-bottom:20px; margin-bottom:18px; }
+h1{ font-family:"Source Serif 4",Georgia,serif; font-weight:600; font-size:clamp(28px,3.4vw,40px); letter-spacing:-.01em; text-wrap:balance; margin:0 0 10px; }
+header.masthead p.sub{ margin:0; max-width:66ch; color:var(--ink-soft); font-size:15.5px; }
+
+.stat-strip{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:20px 0 4px; }
+@media (max-width:720px){ .stat-strip{ grid-template-columns:1fr; } }
+.stat{ background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px 16px; }
+.stat .num{ font-family:"Source Serif 4",serif; font-weight:700; font-size:26px; color:var(--accent-ink); }
+.stat .lbl{ font-size:12.5px; color:var(--ink-soft); margin-top:2px; }
+.cite{ font-size:11.5px; color:var(--ink-soft); margin:8px 2px 30px; }
+
+.compare{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:34px; }
+@media (max-width:720px){ .compare{ grid-template-columns:1fr; } }
+.panel{ background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:18px 20px; }
+.panel.now{ border-top:3px solid var(--ink-soft); }
+.panel.next{ border-top:3px solid var(--accent); box-shadow:var(--shadow); }
+.panel h3{ margin:0 0 6px; font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); font-weight:600; }
+.panel .headline{ font-family:"Source Serif 4",serif; font-size:17px; font-weight:600; margin:0 0 10px; }
+.panel.next .headline{ color:var(--accent-ink); }
+.panel ul{ margin:0; padding-left:18px; color:var(--ink-soft); font-size:14px; }
+.panel li{ margin-bottom:5px; }
+
+.section-head{ display:flex; align-items:baseline; gap:10px; margin:0 0 4px; }
+.section-head .num{ font-family:"JetBrains Mono",monospace; color:var(--accent); font-size:13px; font-weight:600; }
+.section-head h2{ font-family:"Source Serif 4",serif; font-size:21px; margin:0; font-weight:600; }
+.section-note{ color:var(--ink-soft); font-size:14px; margin:4px 0 16px; max-width:72ch; }
+
+.legend{ display:flex; gap:16px; flex-wrap:wrap; margin:0 0 16px; font-size:12.5px; color:var(--ink-soft); }
+.legend .item{ display:flex; align-items:center; gap:6px; }
+.legend .sw{ width:11px; height:11px; border-radius:3px; }
+.sw.st-good{ background:var(--good); } .sw.st-accent{ background:var(--accent); } .sw.st-warn{ background:var(--warn); } .sw.st-critical{ background:var(--critical); }
+
+.trajectory-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(272px,1fr)); gap:14px; margin-bottom:8px; }
+.tcard{ background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:15px 16px 12px; }
+.tcard .top{ display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; }
+.tcard .code{ font-family:"JetBrains Mono",monospace; font-size:13px; font-weight:600; color:var(--ink-soft); }
+.status-pill{ font-family:"JetBrains Mono",monospace; font-size:10.5px; font-weight:600; padding:3px 9px; border-radius:20px; text-transform:uppercase; letter-spacing:.04em; white-space:nowrap; }
+.status-pill.st-good{ background:var(--good-soft); color:var(--good); }
+.status-pill.st-accent{ background:var(--accent-soft); color:var(--accent-ink); }
+.status-pill.st-warn{ background:var(--warn-soft); color:var(--warn); }
+.status-pill.st-critical{ background:var(--critical-soft); color:var(--critical); }
+.tcard .cost{ font-family:"Source Serif 4",serif; font-weight:700; font-size:23px; }
+.tcard .costlbl{ font-size:11.5px; color:var(--ink-soft); margin-bottom:10px; }
+.tcard svg{ display:block; width:100%; height:auto; }
+.tcard .caption{ font-size:11.5px; color:var(--ink-soft); margin-top:6px; }
+
+.flags{ display:grid; gap:12px; margin-bottom:34px; }
+.flag-card{ background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px 18px; display:grid; grid-template-columns:5px 1fr; gap:16px; }
+.flag-card .stripe{ border-radius:4px; }
+.flag-card.f-critical .stripe{ background:var(--critical); }
+.flag-card.f-warn .stripe{ background:var(--warn); }
+.flag-card.f-good .stripe{ background:var(--good); }
+.flag-card h4{ margin:0 0 4px; font-family:"Source Serif 4",serif; font-size:15.5px; font-weight:600; }
+.flag-card p{ margin:0 0 8px; font-size:14px; color:var(--ink-soft); max-width:76ch; }
+.flag-card .why{ font-size:13px; color:var(--accent-ink); background:var(--accent-soft); display:inline-block; padding:5px 10px; border-radius:6px; }
+
+.methodrow{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:12px; }
+@media (max-width:720px){ .methodrow{ grid-template-columns:1fr; } }
+.mcard{ background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px 18px; }
+.mcard .tag{ font-family:"JetBrains Mono",monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--accent); }
+.mcard h4{ margin:6px 0 5px; font-family:"Source Serif 4",serif; font-size:15.5px; }
+.mcard p{ margin:0; font-size:13.5px; color:var(--ink-soft); }
+
+footer{ border-top:1px solid var(--border); margin-top:36px; padding-top:18px; font-size:12.5px; color:var(--ink-soft); display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+footer .next-step{ font-size:13.5px; color:var(--ink); max-width:66ch; }
+footer .next-step b{ color:var(--accent-ink); background:var(--accent-soft); padding:0 4px; border-radius:3px; }
+</style>
+
+<div class="wrap">
+
+  <div class="ribbon"><span class="dot"></span>Prototype — concept demo, illustrative sample data. Not affiliated with or endorsed by JYP, HYBE, SM, or YG.</div>
+
+  <header class="masthead">
+    <h1>Trainee Investment Ledger</h1>
+    <p class="sub">Every agency already runs monthly evaluations and already tracks training spend. What none of them currently see in one place is whether the two are converging — years and cost heading toward a debut-ready artist — or quietly diverging into a write-off nobody flagged until the contract came up for renewal.</p>
+
+    <div class="stat-strip">
+      <div class="stat"><div class="num">~$765K</div><div class="lbl">estimated agency cost per debuted trainee — JYP, reported 2025</div></div>
+      <div class="stat"><div class="num">3–7 yrs</div><div class="lbl">typical training span before a debut decision</div></div>
+      <div class="stat"><div class="num">2–3%</div><div class="lbl">of trainees who enter the system industry-wide ever reach debut</div></div>
+    </div>
+    <div class="cite">Figures as reported by Seoulz and Brakkus industry coverage of agency trainee economics, 2025–2026 — industry estimates, not agency-confirmed accounting.</div>
+  </header>
+
+  <section class="compare">
+    <div class="panel now">
+      <h3>Today</h3>
+      <p class="headline">Two ledgers that never meet</p>
+      <ul>
+        <li>A&amp;R runs the monthly evaluation and scores each trainee on vocal, dance, and stage presence — that record lives with A&amp;R.</li>
+        <li>Finance tracks lessons, housing, styling, and coaching costs per trainee — that record lives with finance.</li>
+        <li>A trainee whose cost is climbing while their score has quietly plateaued for three straight evaluations looks fine in either ledger alone. It only looks like a problem once someone lines the two up — and usually that's at contract-renewal time, not before.</li>
+      </ul>
+    </div>
+    <div class="panel next">
+      <h3>With this layer</h3>
+      <p class="headline">The same two inputs, one trajectory</p>
+      <ul>
+        <li>No change to how evaluations are run or scored — this only pairs the existing monthly score with the existing cost-to-date, automatically, per trainee.</li>
+        <li>Trajectories that are accelerating relative to spend surface as early candidates for fast-tracking — this cuts both ways, not just toward cutting people.</li>
+        <li>Trajectories heading toward a write-off surface months before the next renewal decision, instead of at it.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="num">01</span><h2>Trajectory board</h2></div>
+    <p class="section-note">A sample roster of six — cumulative training investment against monthly evaluation score. All names, figures and scores below are constructed examples, not real trainees.</p>
+    <div class="legend">
+      <div class="item"><span class="sw st-good"></span>On track</div>
+      <div class="item"><span class="sw st-accent"></span>Fast-track candidate</div>
+      <div class="item"><span class="sw st-warn"></span>Watch</div>
+      <div class="item"><span class="sw st-critical"></span>Reassess</div>
+    </div>
+    <div class="trajectory-grid" id="board"></div>
+  </section>
+
+  <section style="margin-top:34px;">
+    <div class="section-head"><span class="num">02</span><h2>Reassessment flags</h2></div>
+    <p class="section-note">What the trajectory board surfaces automatically — patterns visible only once cost and score sit in the same view.</p>
+    <div class="flags" id="flags"></div>
+  </section>
+
+  <section style="margin-top:34px;">
+    <div class="section-head"><span class="num">03</span><h2>Same method, second problem</h2></div>
+    <p class="section-note">Not a second product — the same underlying approach as the Fanomenon layer, pointed at a completely different problem.</p>
+    <div class="methodrow">
+      <div class="mcard">
+        <div class="tag">Layer 1 — logistics</div>
+        <h4>Fanomenon Coordination Layer</h4>
+        <p>Aggregates each label's own customs, shipping, and licensing status into one cross-agency view — surfacing conflicts no single label's system could see, without touching anyone's internal data.</p>
+      </div>
+      <div class="mcard">
+        <div class="tag">Layer 2 — people</div>
+        <h4>Trainee Investment Ledger</h4>
+        <p>Aggregates one agency's own evaluation scores and training spend into one per-trainee trajectory — surfacing investment risk no single ledger could see, without changing how either is recorded.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div>Sample data for illustration only — trainee codes, scores, and costs are constructed examples, not figures from any real agency or trainee.</div>
+    <div class="next-step">Next, if this direction holds up: the real version reads from an agency's existing evaluation export and cost ledger — <b>no new data entry, no change to how evaluations are run</b> — and only adds the combined view on top.</div>
+  </footer>
+
+</div>
+
+<script>
+const TRAINEES = [
+  {code:"T-014", status:"good", months:14, cost:210000,
+   scores:[38,42,47,50,55,58,61,64,68,70,73,76]},
+  {code:"T-027", status:"accent", months:9, cost:140000,
+   scores:[50,58,66,74,80,85,89,92,95]},
+  {code:"T-031", status:"warn", months:18, cost:305000,
+   scores:[35,44,52,58,63,66,68,69,68,69,68,69]},
+  {code:"T-009", status:"critical", months:22, cost:390000,
+   scores:[40,46,50,55,58,60,61,60,59,58,57,56]},
+  {code:"T-042", status:"good", months:11, cost:165000,
+   scores:[45,49,53,58,62,65,69,72,75,78,81]},
+  {code:"T-018", status:"warn", months:16, cost:270000,
+   scores:[42,50,57,62,66,68,70,69,70,69,70,69]},
+];
+
+const STATUS_LABEL = {good:"On track", accent:"Fast-track", warn:"Watch", critical:"Reassess"};
+
+function fmtCost(n){
+  return "$" + Math.round(n/1000) + "K";
+}
+
+function sparkline(scores, statusVar){
+  const w = 240, h = 74, padX = 8, padY = 10, threshold = 80;
+  const n = scores.length;
+  const px = i => padX + (i/(n-1)) * (w - 2*padX);
+  const py = v => (h - padY) - (v/100) * (h - 2*padY);
+  let path = scores.map((v,i) => `${i===0?"M":"L"} ${px(i).toFixed(1)} ${py(v).toFixed(1)}`).join(" ");
+  let area = path + ` L ${px(n-1).toFixed(1)} ${(h-padY).toFixed(1)} L ${px(0).toFixed(1)} ${(h-padY).toFixed(1)} Z`;
+  const ty = py(threshold).toFixed(1);
+  const lastX = px(n-1).toFixed(1), lastY = py(scores[n-1]).toFixed(1);
+  const col = `var(--${statusVar === "accent" ? "accent" : statusVar})`;
+  const colSoft = statusVar === "accent" ? "var(--accent-soft)" : `var(--${statusVar}-soft)`;
+  return `
+  <svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Evaluation score trend">
+    <line x1="${padX}" y1="${ty}" x2="${w-padX}" y2="${ty}" stroke="var(--border)" stroke-width="1" stroke-dasharray="3,3"/>
+    <text x="${w-padX}" y="${Number(ty)-3}" text-anchor="end" font-size="8.5" font-family="JetBrains Mono, monospace" fill="var(--ink-soft)">80 · debut-ready</text>
+    <path d="${area}" fill="${colSoft}" stroke="none"/>
+    <path d="${path}" fill="none" stroke="${col}" stroke-width="2"/>
+    <circle cx="${lastX}" cy="${lastY}" r="3.4" fill="${col}"/>
+    <text x="${padX}" y="${h-1}" font-size="8.5" font-family="JetBrains Mono, monospace" fill="var(--ink-soft)">M1</text>
+    <text x="${w-padX}" y="${h-1}" text-anchor="end" font-size="8.5" font-family="JetBrains Mono, monospace" fill="var(--ink-soft)">M${n}</text>
+  </svg>`;
+}
+
+function buildBoard(){
+  const board = document.getElementById("board");
+  TRAINEES.forEach(t => {
+    const card = document.createElement("div");
+    card.className = "tcard";
+    card.innerHTML = `
+      <div class="top">
+        <span class="code">${t.code}</span>
+        <span class="status-pill st-${t.status}">${STATUS_LABEL[t.status]}</span>
+      </div>
+      <div class="cost">${fmtCost(t.cost)}</div>
+      <div class="costlbl">invested to date · ${t.months} months in program</div>
+      ${sparkline(t.scores, t.status)}
+      <div class="caption">Monthly evaluation score, last ${t.scores.length} months</div>
+    `;
+    board.appendChild(card);
+  });
+}
+
+const FLAGS = [
+  {sev:"good", title:"T-027 is accelerating well ahead of cost",
+   text:"Evaluation score rose from 50 to 95 in nine months on a below-average spend — a candidate for reduced training overhead or an earlier debut-readiness review, not just a cost story.",
+   why:"A&R sees the score jump. Finance sees the spend is average. Neither ledger alone flags that the combination is unusual."},
+  {sev:"critical", title:"T-009 — cost up, score down, renewal approaching",
+   text:"Training cost has continued rising as coaching intensified, while the evaluation score has slipped for three consecutive months. Contract renewal falls inside the next quarter.",
+   why:"Finance sees rising spend and assumes it reflects increased investment in a promising trainee. A&R sees the recent scores but has no visibility into how much has already been committed."},
+  {sev:"warn", title:"T-031 and T-018 — plateaued for four straight evaluations",
+   text:"Both show a clear early rise followed by four consecutive flat readings. Neither has declined enough to trigger a standard review, but neither is progressing either.",
+   why:"A single flat month reads as normal variance. Only a trajectory view across multiple quarters makes a genuine plateau visible."},
+];
+
+function buildFlags(){
+  const wrap = document.getElementById("flags");
+  FLAGS.forEach(f => {
+    const card = document.createElement("div");
+    card.className = "flag-card f-" + f.sev;
+    card.innerHTML = `<div class="stripe"></div><div><h4>${f.title}</h4><p>${f.text}</p><span class="why">Why neither ledger alone catches this: ${f.why}</span></div>`;
+    wrap.appendChild(card);
+  });
+}
+
+buildBoard();
+buildFlags();
+</script>

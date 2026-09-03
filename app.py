@@ -1,6 +1,8 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import openai
 import io
+import os
 from datetime import date, timedelta, datetime
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
@@ -8,12 +10,202 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.units import inch
 from xml.sax.saxutils import escape
+import re
 
 
 def pdf_safe(text):
     """Escape user-controlled text before it goes into a ReportLab Paragraph,
     so characters like & < > can't break or inject markup into the PDF."""
     return escape(str(text))
+
+
+def load_prototype_html(filename):
+    """Load a self-contained concept-prototype HTML file (sample data,
+    not wired to live data) from the prototypes/ folder next to this file."""
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "prototypes", filename)
+    with open(path, "r", encoding="utf-8") as f:
+        return f.read()
+
+
+# ============================================================
+# SHARED REPORT / DIAGRAM HELPERS
+# Used by Tab 1 (Customs), Tab 2 (Shipping), and Tab 4 (IP Risk) to turn
+# a wall of AI-generated markdown (or a calculation) into something an
+# executive can scan in seconds: color-coded verdict tiles, a step-by-step
+# flow diagram of the logic, and expandable detail cards.
+# ============================================================
+
+def badge_style(value):
+    """Map a verdict word (LOW/HIGH/GO/HOLD/...) to a color + risk class."""
+    v = (value or "").upper()
+    if any(k in v for k in ["HIGH", "CRITICAL", "HOLD", "DO NOT SHIP", "NOT READY", "UNAUTHORIZED"]):
+        return "#f87171", "risk-high"
+    if any(k in v for k in ["MEDIUM", "CAUTION", "AT RISK"]):
+        return "#fcd34d", "risk-medium"
+    if any(k in v for k in ["LOW", "GO", "ON TRACK"]):
+        return "#34d399", "risk-low"
+    return "#a78bfa", "result-box"
+
+
+def stat_tile(label, value):
+    color, _ = badge_style(value)
+    return f'''<div class="metric-card" style="padding:18px;">
+        <div style="font-size:11px;color:rgba(232,232,240,0.5);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">{escape(label)}</div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;color:{color};">{escape(value or "Not specified")}</div>
+    </div>'''
+
+
+def _first_match(patterns, text):
+    for pat in patterns:
+        m = re.search(pat, text, re.IGNORECASE)
+        if m:
+            return m.group(1).strip().rstrip(".")
+    return None
+
+
+SECTION_ICONS = {
+    "HS/HTS CLASSIFICATION": "🏷️",
+    "IMPORT DUTY ESTIMATE": "💰",
+    "REQUIRED DOCUMENTATION": "📄",
+    "CUSTOMS RISKS": "⚠️",
+    "IP & BRAND CONSIDERATIONS": "🛡️",
+    "OPERATIONAL RED FLAGS": "🚩",
+    "RECOMMENDED NEXT STEPS": "✅",
+    "IP RISK ASSESSMENT": "🛡️",
+    "CUSTOMS SEIZURE RISK": "🚨",
+    "AGENCY ENFORCEMENT RISK": "⚖️",
+    "PLATFORM POLICY RISK": "🛒",
+    "MITIGATION RECOMMENDATIONS": "🧭",
+}
+
+
+def section_icon(title):
+    key = title.strip().upper()
+    for k, icon in SECTION_ICONS.items():
+        if k in key:
+            return icon
+    return "📌"
+
+
+def parse_ai_sections(markdown_text):
+    """Split a Narae AI report into (title, body) tuples based on the
+    '**N. SECTION NAME**' headers every Narae prompt asks the model for."""
+    pattern = re.compile(r"\*\*\s*\d+\.\s*([^\*]+?)\*\*")
+    matches = list(pattern.finditer(markdown_text))
+    sections = []
+    for i, m in enumerate(matches):
+        title = m.group(1).strip()
+        start = m.end()
+        end = matches[i + 1].start() if i + 1 < len(matches) else len(markdown_text)
+        body = markdown_text[start:end].strip()
+        sections.append((title, body))
+    return sections
+
+
+def render_ai_report(result_text, verdict_fields):
+    """Render a structured Narae AI report as headline stat tiles plus
+    expandable section cards, instead of one long markdown block."""
+    if verdict_fields:
+        cols = st.columns(len(verdict_fields))
+        for col, (label, value) in zip(cols, verdict_fields):
+            with col:
+                st.markdown(stat_tile(label, value), unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+
+    sections = parse_ai_sections(result_text)
+    if not sections:
+        # The model didn't follow the expected section format — don't lose
+        # the analysis, just fall back to showing it as-is.
+        st.markdown('<div class="result-box">', unsafe_allow_html=True)
+        st.markdown(result_text)
+        st.markdown('</div>', unsafe_allow_html=True)
+        return
+
+    shown_first = False
+    for title, body in sections:
+        if "VERDICT" in title.upper():
+            continue  # already surfaced as stat tiles above
+        icon = section_icon(title)
+        with st.expander(f"{icon}  {title}", expanded=(not shown_first)):
+            st.markdown(body)
+        shown_first = True
+
+
+def flow_diagram(steps):
+    """A simple left-to-right step flowchart matching Narae's visual style,
+    so the logic behind a module is visible before/after running it."""
+    parts = []
+    for i, step in enumerate(steps):
+        parts.append(f'<div class="flow-step">{escape(step)}</div>')
+        if i < len(steps) - 1:
+            parts.append('<div class="flow-arrow">&#8594;</div>')
+    return f'<div class="flow-diagram">{"".join(parts)}</div>'
+
+
+def render_breakeven_chart(weight, air_rate, sea_rate, sea_min):
+    """SVG chart showing air cost (linear) vs sea cost (flat minimum, then
+    linear) across weight, marking the current shipment and the break-even
+    point where sea overtakes air as the cheaper option."""
+    breakeven = (sea_min / air_rate) if air_rate else 0
+    w0 = (sea_min / sea_rate) if sea_rate else 0
+    x_max = max(weight, breakeven, 1) * 2.2
+
+    def cost_air(w):
+        return air_rate * w
+
+    def cost_sea(w):
+        return max(sea_rate * w, sea_min)
+
+    y_max = max(cost_air(x_max), cost_sea(x_max), sea_min) * 1.15 or 1
+
+    W, H = 640, 300
+    ml, mr, mt, mb = 55, 20, 24, 44
+    pw, ph = W - ml - mr, H - mt - mb
+
+    def px(x):
+        return ml + (x / x_max) * pw
+
+    def py(y):
+        return mt + ph - (y / y_max) * ph
+
+    air_line = f"{px(0):.1f},{py(0):.1f} {px(x_max):.1f},{py(cost_air(x_max)):.1f}"
+    if w0 < x_max:
+        sea_line = (
+            f"{px(0):.1f},{py(sea_min):.1f} {px(w0):.1f},{py(sea_min):.1f} "
+            f"{px(x_max):.1f},{py(cost_sea(x_max)):.1f}"
+        )
+    else:
+        sea_line = f"{px(0):.1f},{py(sea_min):.1f} {px(x_max):.1f},{py(sea_min):.1f}"
+
+    cur_x = px(weight)
+    cur_air_y = py(cost_air(weight))
+    cur_sea_y = py(cost_sea(weight))
+
+    be_marker = ""
+    if breakeven < x_max:
+        be_x = px(breakeven)
+        be_marker = (
+            f'<line x1="{be_x:.1f}" y1="{mt}" x2="{be_x:.1f}" y2="{mt+ph}" '
+            f'stroke="rgba(232,232,240,0.35)" stroke-width="1" stroke-dasharray="4,4"/>'
+            f'<text x="{be_x+6:.1f}" y="{mt+14}" fill="rgba(232,232,240,0.8)" font-size="11">'
+            f'Break-even &#8776; {breakeven:.0f} kg</text>'
+        )
+
+    label_y = min(cur_air_y, cur_sea_y) - 10
+
+    svg = f'''<svg viewBox="0 0 {W} {H}" style="width:100%;height:auto;">
+<line x1="{ml}" y1="{mt}" x2="{ml}" y2="{mt+ph}" stroke="rgba(232,232,240,0.25)" stroke-width="1"/>
+<line x1="{ml}" y1="{mt+ph}" x2="{ml+pw}" y2="{mt+ph}" stroke="rgba(232,232,240,0.25)" stroke-width="1"/>
+{be_marker}
+<polyline points="{air_line}" fill="none" stroke="#a78bfa" stroke-width="2.5"/>
+<polyline points="{sea_line}" fill="none" stroke="#34d399" stroke-width="2.5"/>
+<circle cx="{cur_x:.1f}" cy="{cur_air_y:.1f}" r="5" fill="#a78bfa"/>
+<circle cx="{cur_x:.1f}" cy="{cur_sea_y:.1f}" r="5" fill="#34d399"/>
+<text x="{cur_x+8:.1f}" y="{label_y:.1f}" fill="#e8e8f0" font-size="11">Your shipment: {weight:.0f} kg</text>
+<text x="{ml}" y="{mt+ph+24}" fill="rgba(167,139,250,0.9)" font-size="11">&#9679; Air freight (${air_rate:.2f}/kg)</text>
+<text x="{ml+190}" y="{mt+ph+24}" fill="rgba(52,211,153,0.9)" font-size="11">&#9679; Sea freight (${sea_rate:.2f}/kg, ${sea_min:.0f} min)</text>
+</svg>'''
+    return svg, breakeven
 
 
 st.set_page_config(
@@ -52,6 +244,11 @@ st.markdown("""
 div[data-testid="stMarkdownContainer"] p { color: rgba(232,232,240,0.85); }
 h1, h2, h3 { color: #e8e8f0; }
 label { color: rgba(232,232,240,0.7) !important; }
+.flow-diagram { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:6px; margin: 18px 0 26px 0; }
+.flow-step { background:rgba(139,92,246,0.1); border:1px solid rgba(139,92,246,0.3); border-radius:10px; padding:10px 16px; font-size:13px; font-weight:600; color:#e8e8f0; white-space:nowrap; }
+.flow-arrow { color:rgba(167,139,250,0.7); font-size:18px; font-weight:700; }
+[data-testid="stExpander"] { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; margin-bottom: 10px; }
+[data-testid="stExpander"] summary { font-family: 'Space Grotesk', sans-serif; font-weight:600; font-size:15px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -81,13 +278,15 @@ with col5:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
     "🎁 Customs Intelligence",
     "✈️ Shipping Optimizer",
     "🎤 Artist Tour Planner",
     "🛡️ IP & Brand Risk",
     "📊 Shipment Readiness",
-    "🗺️ Platform Vision"
+    "🗺️ Platform Vision",
+    "🎪 Fanomenon Layer",
+    "📈 Trainee Ledger"
 ])
 
 # ============================================================
@@ -96,6 +295,11 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
 with tab1:
     st.markdown("### 🎁 K-Entertainment Customs Intelligence Engine")
     st.markdown("*AI-assisted HS/HTS classification, duty estimation, documentation requirements, and customs risk analysis*")
+
+    st.markdown(flow_diagram([
+        "Product", "HS/HTS Classification", "Duty Estimate",
+        "Documentation", "Customs Risk", "IP Check", "Recommendation"
+    ]), unsafe_allow_html=True)
 
     col1, col2 = st.columns([2, 1])
     with col1:
@@ -250,9 +454,12 @@ Identify the most important things an operations team should verify before the s
                     result = response.choices[0].message.content
                     st.markdown("---")
                     st.markdown("#### 📋 Customs Intelligence Report")
-                    st.markdown('<div class="result-box">', unsafe_allow_html=True)
-                    st.markdown(result)
-                    st.markdown('</div>', unsafe_allow_html=True)
+                    verdict_fields = [
+                        ("Overall Risk", _first_match([r"Overall risk:\s*([A-Za-z /]+)"], result)),
+                        ("Classification Confidence", _first_match([r"Classification confidence:\s*([A-Za-z /]+)"], result)),
+                        ("Recommended Action", _first_match([r"Recommended action:\s*([A-Za-z /]+)"], result)),
+                    ]
+                    render_ai_report(result, verdict_fields)
                     pdf_file = create_customs_pdf(
                         product=product,
                         country=country,
@@ -400,6 +607,30 @@ with tab2:
             if ship_dest in ["Brazil", "Argentina"]:
                 st.markdown('<div class="risk-high">⚠️ HIGH-DUTY MARKET: Brazil/Argentina require CFO-level customs strategy. Contact your customs broker before shipping.</div>', unsafe_allow_html=True)
 
+            st.markdown("---")
+            st.markdown("#### 🧠 How Narae Made This Recommendation")
+            st.markdown(flow_diagram([
+                "Weight & deadline",
+                "Air cost = rate × kg",
+                "Sea cost = max(rate × kg, minimum)",
+                "Check deadline feasibility",
+                "Compare cost",
+                "Recommendation"
+            ]), unsafe_allow_html=True)
+
+            svg, breakeven = render_breakeven_chart(weight, air["rate"], sea["rate"], sea["min"])
+            st.markdown(svg, unsafe_allow_html=True)
+
+            st.markdown(f"""
+            <div class="result-box">
+            <b>In plain numbers, for {ship_dest}:</b><br><br>
+            Air freight: {weight:,.0f} kg × ${air['rate']:.2f}/kg = <b>${air_cost:,.0f}</b><br>
+            Sea freight: max({weight:,.0f} kg × ${sea['rate']:.2f}/kg, ${sea['min']:,.0f} minimum) = <b>${sea_cost:,.0f}</b><br><br>
+            Sea freight carries a flat minimum charge of <b>${sea['min']:,.0f}</b> no matter how light the shipment is — so for anything under about <b>{breakeven:.0f} kg</b> to {ship_dest}, you're paying for container space you don't need, and air freight (priced purely per kg) wins on cost as well as speed.
+            Once a shipment passes roughly {breakeven:.0f} kg, sea's much lower per-kg rate (${sea['rate']:.2f} vs air's ${air['rate']:.2f}) takes over and the gap only grows from there.
+            </div>
+            """, unsafe_allow_html=True)
+
 # ============================================================
 # TAB 3 — ARTIST TOUR PLANNER
 # ============================================================
@@ -521,6 +752,11 @@ with tab4:
     st.markdown("### 🛡️ IP & Brand Risk Analyzer")
     st.markdown("*AI-powered intellectual property and brand risk assessment for K-entertainment merchandise*")
 
+    st.markdown(flow_diagram([
+        "Product + IP", "Seizure Risk", "Agency Enforcement",
+        "Platform Policy", "Documentation", "Verdict"
+    ]), unsafe_allow_html=True)
+
     col1, col2 = st.columns(2)
     with col1:
         ip_product = st.text_input("Product Description", placeholder="e.g. Stray Kids MIROH graphic tee with member faces")
@@ -582,9 +818,13 @@ Clear GO / PROCEED WITH CAUTION / DO NOT SHIP recommendation"""
                         messages=[{"role": "user", "content": prompt}]
                     )
                     result = response.choices[0].message.content
-                    st.markdown('<div class="result-box">', unsafe_allow_html=True)
-                    st.markdown(result)
-                    st.markdown('</div>', unsafe_allow_html=True)
+                    st.markdown("---")
+                    st.markdown("#### 🛡️ IP & Brand Risk Report")
+                    verdict_fields = [
+                        ("IP Risk Level", _first_match([r"Rate overall risk as:?\s*([A-Za-z]+)", r"overall risk\s*:?\s*(CRITICAL|HIGH|MEDIUM|LOW)"], result)),
+                        ("Verdict", _first_match([r"\b(GO|PROCEED WITH CAUTION|DO NOT SHIP)\b"], result)),
+                    ]
+                    render_ai_report(result, verdict_fields)
                 except Exception as e:
                     st.error("The IP risk analysis could not be completed.")
                     st.caption(f"Technical detail: {str(e)}")
@@ -783,6 +1023,24 @@ with tab6:
         </p>
     </div>
     """, unsafe_allow_html=True)
+
+# ============================================================
+# TAB 7 — FANOMENON COORDINATION LAYER (CONCEPT PROTOTYPE)
+# ============================================================
+with tab7:
+    st.markdown("### 🎪 Fanomenon Coordination Layer")
+    st.markdown("*Concept prototype — a shared cross-agency logistics view across JYP, HYBE, SM, and YG's shipments into Fanomenon, Seoul Dec 2–12 2027*")
+    st.caption("This is a concept demo built on illustrative sample data, not a live feed from any label. It's the next layer proposed on top of the Customs, Shipping, and IP & Brand Risk engines above — not a replacement for them.")
+    components.html(load_prototype_html("fanomenon_coordinator.html"), height=2850, scrolling=True)
+
+# ============================================================
+# TAB 8 — TRAINEE INVESTMENT LEDGER (CONCEPT PROTOTYPE)
+# ============================================================
+with tab8:
+    st.markdown("### 📈 Trainee Investment Ledger")
+    st.markdown("*Concept prototype — pairing an agency's own training spend with its own evaluation scores to flag investment risk early*")
+    st.caption("This is a concept demo built on illustrative sample data, not a real agency's records. It applies the same approach as the Fanomenon layer — aggregate what's already tracked into one view — to a second problem: trainee development investment.")
+    components.html(load_prototype_html("trainee_investment_ledger.html"), height=2700, scrolling=True)
 
 st.markdown("---")
 st.markdown("""

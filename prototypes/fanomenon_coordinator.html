@@ -1,0 +1,478 @@
+<title>Fanomenon Coordination Layer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#eef1ee;
+  --surface:#ffffff;
+  --surface-2:#e2e7e1;
+  --ink:#142019;
+  --ink-soft:#52605a;
+  --border:#ccd4cb;
+  --accent:#0e7c86;
+  --accent-soft:#d9eef0;
+  --accent-ink:#063d42;
+  --good:#227a4c;
+  --good-soft:#e0f0e6;
+  --warn:#9a6a10;
+  --warn-soft:#f7ecd6;
+  --critical:#a83420;
+  --critical-soft:#f7ded8;
+  --shadow: 0 1px 2px rgba(20,32,25,.06), 0 6px 20px rgba(20,32,25,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1512;
+    --surface:#161f1b;
+    --surface-2:#1e2b25;
+    --ink:#edf3ef;
+    --ink-soft:#9fb0a8;
+    --border:#2b3a33;
+    --accent:#49c8d1;
+    --accent-soft:#123236;
+    --accent-ink:#c9f2f4;
+    --good:#5bcf8c;
+    --good-soft:#123424;
+    --warn:#e3ac48;
+    --warn-soft:#3a2c10;
+    --critical:#e37a63;
+    --critical-soft:#3a1c14;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1512;
+  --surface:#161f1b;
+  --surface-2:#1e2b25;
+  --ink:#edf3ef;
+  --ink-soft:#9fb0a8;
+  --border:#2b3a33;
+  --accent:#49c8d1;
+  --accent-soft:#123236;
+  --accent-ink:#c9f2f4;
+  --good:#5bcf8c;
+  --good-soft:#123424;
+  --warn:#e3ac48;
+  --warn-soft:#3a2c10;
+  --critical:#e37a63;
+  --critical-soft:#3a1c14;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.35);
+}
+
+*{box-sizing:border-box;}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  line-height:1.5;
+}
+.mono{ font-family:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace; }
+
+.wrap{ max-width:1180px; margin:0 auto; padding:28px 24px 64px; }
+
+/* ---------- header ---------- */
+.ribbon{
+  display:inline-flex; align-items:center; gap:8px;
+  font-family:"IBM Plex Mono", monospace;
+  font-size:11.5px; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--accent-ink); background:var(--accent-soft);
+  border:1px solid var(--accent); border-radius:5px;
+  padding:5px 10px; margin-bottom:18px;
+}
+.ribbon .dot{ width:6px;height:6px;border-radius:50%; background:var(--accent); }
+
+header.masthead{
+  display:flex; justify-content:space-between; align-items:flex-end; gap:24px;
+  flex-wrap:wrap;
+  border-bottom:1px solid var(--border);
+  padding-bottom:22px; margin-bottom:26px;
+}
+h1{
+  font-size:clamp(28px,3.4vw,40px);
+  font-weight:700; letter-spacing:-.01em; text-wrap:balance;
+  margin:0 0 8px;
+}
+header.masthead p.sub{
+  margin:0; max-width:56ch; color:var(--ink-soft); font-size:15.5px;
+}
+.event-tag{
+  text-align:right; font-family:"IBM Plex Mono",monospace; font-size:12.5px;
+  color:var(--ink-soft); white-space:nowrap;
+}
+.event-tag strong{ display:block; color:var(--ink); font-size:14px; font-weight:600; }
+
+/* ---------- compare panels ---------- */
+.compare{
+  display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:34px;
+}
+@media (max-width:720px){ .compare{ grid-template-columns:1fr; } }
+.panel{
+  background:var(--surface); border:1px solid var(--border); border-radius:10px;
+  padding:18px 20px;
+}
+.panel.now{ border-top:3px solid var(--ink-soft); }
+.panel.next{ border-top:3px solid var(--accent); box-shadow:var(--shadow); }
+.panel h3{
+  margin:0 0 6px; font-size:13px; text-transform:uppercase; letter-spacing:.06em;
+  color:var(--ink-soft); font-weight:600;
+}
+.panel .headline{ font-size:16.5px; font-weight:600; margin:0 0 10px; }
+.panel ul{ margin:0; padding-left:18px; color:var(--ink-soft); font-size:14px; }
+.panel li{ margin-bottom:5px; }
+.panel.next .headline{ color:var(--accent-ink); }
+
+/* ---------- section headings ---------- */
+.section-head{ display:flex; align-items:baseline; gap:10px; margin:0 0 4px; }
+.section-head .num{ font-family:"IBM Plex Mono",monospace; color:var(--accent); font-size:13px; font-weight:600; }
+.section-head h2{ font-size:20px; margin:0; font-weight:700; }
+.section-note{ color:var(--ink-soft); font-size:14px; margin:4px 0 16px; max-width:70ch; }
+
+/* ---------- timeline board ---------- */
+.board-scroll{ overflow-x:auto; border:1px solid var(--border); border-radius:10px; background:var(--surface); }
+.board{
+  display:grid;
+  grid-template-columns: 172px repeat(16, 62px);
+  min-width:1164px;
+}
+.board .corner, .board .daycell{
+  border-bottom:1px solid var(--border);
+  padding:8px 6px;
+  font-family:"IBM Plex Mono",monospace;
+}
+.board .corner{
+  position:sticky; left:0; background:var(--surface);
+  border-right:1px solid var(--border);
+  font-size:11px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em;
+  display:flex; align-items:flex-end;
+}
+.board .daycell{
+  font-size:11px; text-align:center; color:var(--ink-soft);
+}
+.board .daycell .d{ font-size:13px; font-weight:600; color:var(--ink); }
+.board .daycell.event-day{ background:var(--accent-soft); color:var(--accent-ink); }
+.board .daycell.event-day .d{ color:var(--accent-ink); }
+
+.lane-label{
+  position:sticky; left:0; background:var(--surface);
+  border-right:1px solid var(--border); border-bottom:1px solid var(--border);
+  padding:10px 10px; display:flex; align-items:center; gap:9px;
+}
+.badge{
+  width:34px; height:34px; border-radius:8px; flex:none;
+  display:flex; align-items:center; justify-content:center;
+  font-family:"IBM Plex Mono",monospace; font-weight:600; font-size:11.5px;
+  background:var(--surface-2); color:var(--ink); border:1px solid var(--border);
+}
+.lane-label .text{ min-width:0; }
+.lane-label .name{ font-size:13px; font-weight:600; line-height:1.25; }
+.lane-label .role{ font-size:10.5px; color:var(--ink-soft); line-height:1.3; }
+
+.cell{
+  border-right:1px solid var(--border); border-bottom:1px solid var(--border);
+  min-height:66px; position:relative; padding:4px;
+}
+.board > .lane-label:nth-of-type(odd) ~ .cell{}
+.chip{
+  width:100%; height:100%; border-radius:6px; border:1px solid transparent;
+  font-family:"IBM Plex Mono",monospace; font-size:9.5px; font-weight:600;
+  padding:4px 5px; cursor:pointer; text-align:left; line-height:1.22;
+  display:flex; flex-direction:column; justify-content:center; gap:1px;
+  transition:transform .12s ease, box-shadow .12s ease;
+}
+.chip:hover, .chip:focus-visible{ transform:translateY(-1px); box-shadow:var(--shadow); outline:none; }
+.chip.risk-good{ background:var(--good-soft); color:var(--good); border-color:color-mix(in srgb, var(--good) 35%, transparent); }
+.chip.risk-warn{ background:var(--warn-soft); color:var(--warn); border-color:color-mix(in srgb, var(--warn) 35%, transparent); }
+.chip.risk-critical{ background:var(--critical-soft); color:var(--critical); border-color:color-mix(in srgb, var(--critical) 40%, transparent); }
+.chip.selected{ box-shadow:0 0 0 2px var(--accent) inset; }
+.chip small{ font-weight:500; opacity:.85; font-size:9.5px; }
+
+.legend{ display:flex; gap:18px; flex-wrap:wrap; margin:12px 2px 0; font-size:12.5px; color:var(--ink-soft); }
+.legend .item{ display:flex; align-items:center; gap:6px; }
+.legend .sw{ width:11px; height:11px; border-radius:3px; }
+.sw.risk-good{ background:var(--good); }
+.sw.risk-warn{ background:var(--warn); }
+.sw.risk-critical{ background:var(--critical); }
+
+/* ---------- detail panel ---------- */
+.detail{
+  margin-top:16px; background:var(--surface); border:1px solid var(--border);
+  border-radius:10px; padding:18px 20px; display:grid;
+  grid-template-columns:1fr auto; gap:8px 20px;
+}
+.detail .eyebrow{ font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft); grid-column:1/-1; }
+.detail h4{ margin:2px 0 4px; font-size:17px; grid-column:1/-1; }
+.detail .row{ display:flex; gap:22px; flex-wrap:wrap; grid-column:1/-1; font-size:13.5px; color:var(--ink-soft); }
+.detail .row b{ color:var(--ink); font-weight:600; }
+.detail .flag{
+  grid-column:1/-1; margin-top:6px; padding:10px 12px; border-radius:7px;
+  font-size:13.5px; display:flex; gap:8px;
+}
+.status-pill{
+  justify-self:end; align-self:start; font-family:"IBM Plex Mono",monospace;
+  font-size:11.5px; font-weight:600; padding:4px 10px; border-radius:20px;
+  text-transform:uppercase; letter-spacing:.04em;
+}
+.status-pill.risk-good{ background:var(--good-soft); color:var(--good); }
+.status-pill.risk-warn{ background:var(--warn-soft); color:var(--warn); }
+.status-pill.risk-critical{ background:var(--critical-soft); color:var(--critical); }
+
+/* ---------- conflicts ---------- */
+.conflicts{ display:grid; gap:12px; margin-bottom:34px; }
+.conflict{
+  background:var(--surface); border:1px solid var(--border); border-radius:10px;
+  padding:16px 18px; display:grid; grid-template-columns:5px 1fr; gap:16px;
+}
+.conflict .stripe{ border-radius:4px; }
+.conflict.sev-high .stripe{ background:var(--critical); }
+.conflict.sev-med .stripe{ background:var(--warn); }
+.conflict h4{ margin:0 0 4px; font-size:15.5px; }
+.conflict p{ margin:0 0 8px; font-size:14px; color:var(--ink-soft); max-width:74ch; }
+.conflict .why{
+  font-size:13px; color:var(--accent-ink); background:var(--accent-soft);
+  display:inline-block; padding:5px 10px; border-radius:6px;
+}
+.conflict .tags{ display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+.conflict .tag{
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px; color:var(--ink-soft);
+  border:1px solid var(--border); border-radius:4px; padding:2px 7px;
+}
+
+/* ---------- built-from mapping ---------- */
+.builtfrom{
+  display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:10px;
+}
+@media (max-width:820px){ .builtfrom{ grid-template-columns:repeat(2,1fr); } }
+.bf-card{
+  background:var(--surface); border:1px solid var(--border); border-radius:10px;
+  padding:14px 16px;
+}
+.bf-card .tag{ font-family:"IBM Plex Mono",monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft); }
+.bf-card .tag.existing{ color:var(--good); }
+.bf-card .tag.new{ color:var(--accent); }
+.bf-card h5{ margin:6px 0 4px; font-size:14.5px; }
+.bf-card p{ margin:0; font-size:13px; color:var(--ink-soft); }
+
+footer{
+  border-top:1px solid var(--border); margin-top:36px; padding-top:18px;
+  font-size:12.5px; color:var(--ink-soft); display:flex; justify-content:space-between;
+  gap:16px; flex-wrap:wrap;
+}
+footer .next-step{
+  font-size:13.5px; color:var(--ink); max-width:66ch;
+}
+footer .next-step b{ color:var(--accent-ink); background:var(--accent-soft); padding:0 4px; border-radius:3px; }
+</style>
+
+<div class="wrap">
+
+  <div class="ribbon"><span class="dot"></span>Prototype — concept demo, illustrative sample data. Not affiliated with or endorsed by JYP, HYBE, SM, or YG.</div>
+
+  <header class="masthead">
+    <div>
+      <h1>Fanomenon Coordination Layer</h1>
+      <p class="sub">Four labels, four separate logistics systems, one shared event. This is the view none of them can currently see on their own — built as the next layer on top of Narae's existing customs, shipping, and IP-risk engine.</p>
+    </div>
+    <div class="event-tag">
+      <strong>FANOMENON · SEOUL</strong>
+      Dec 2 – 12, 2027<br>Seoul Arena · KINTEX
+    </div>
+  </header>
+
+  <section class="compare">
+    <div class="panel now">
+      <h3>Today</h3>
+      <p class="headline">Four labels, four blind spots</p>
+      <ul>
+        <li>JYP, HYBE, SM, and YG each run their own customs, shipping, and merch-licensing tracking — built for one company, not four sharing a venue and a calendar.</li>
+        <li>No agency can see another's shipment schedule, so a port bottleneck or a dock collision only becomes visible when it's already happened.</li>
+        <li>Joint-branding approvals (the shared Fanomenon mark) are tracked separately by whoever asked for the license, with no shared record of who's cleared and who isn't.</li>
+      </ul>
+    </div>
+    <div class="panel next">
+      <h3>With this layer</h3>
+      <p class="headline">One shared risk view, zero shared systems</p>
+      <ul>
+        <li>Each label keeps its own internal system. This layer only aggregates the output — risk level, timing, status — never the underlying shipment data.</li>
+        <li>Conflicts across agencies surface automatically: same customs window, same loading dock, same unresolved license.</li>
+        <li>Built on the classification, duty, and risk logic Narae already runs today — this is a new lens on existing engines, not a rebuild.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="num">01</span><h2>Cross-agency shipment timeline</h2></div>
+    <p class="section-note">Sample shipments for all four labels, positioned by expected customs-clearance date. Click any entry for detail — the AI &amp; brand risk read‑outs are placeholders standing in for Narae's actual classifier.</p>
+
+    <div class="board-scroll">
+      <div class="board" id="board"></div>
+    </div>
+    <div class="legend">
+      <div class="item"><span class="sw risk-good"></span>Low risk — on track</div>
+      <div class="item"><span class="sw risk-warn"></span>Medium — needs verification</div>
+      <div class="item"><span class="sw risk-critical"></span>High — action required</div>
+    </div>
+
+    <div class="detail" id="detail"></div>
+  </section>
+
+  <section style="margin-top:34px;">
+    <div class="section-head"><span class="num">02</span><h2>Conflict detector</h2></div>
+    <p class="section-note">What only shows up once you're looking at all four lanes at the same time — the actual reason a shared layer is worth more than four good internal systems.</p>
+    <div class="conflicts" id="conflicts"></div>
+  </section>
+
+  <section style="margin-top:34px;">
+    <div class="section-head"><span class="num">03</span><h2>What's reused vs. what's new</h2></div>
+    <p class="section-note">Nothing here throws away what's already built — it's a shared read-out sitting on top of engines Narae runs today.</p>
+    <div class="builtfrom" id="builtfrom"></div>
+  </section>
+
+  <footer>
+    <div>Sample data for illustration only — shipment names, dates, and conflicts are constructed examples, not real Fanomenon logistics.</div>
+    <div class="next-step">Next, if this direction holds up: rebuild this board as a real Streamlit tab reusing the existing classifier and risk-scoring code, seeded with <b>placeholder lanes</b> until any label actually opts in.</div>
+  </footer>
+
+</div>
+
+<script>
+const DAYS = [
+  {d:"Nov 27"},{d:"Nov 28"},{d:"Nov 29"},{d:"Nov 30"},
+  {d:"Dec 1"},{d:"Dec 2",event:true},{d:"Dec 3",event:true},{d:"Dec 4",event:true},
+  {d:"Dec 5",event:true},{d:"Dec 6",event:true},{d:"Dec 7",event:true},{d:"Dec 8",event:true},
+  {d:"Dec 9",event:true},{d:"Dec 10",event:true},{d:"Dec 11",event:true},{d:"Dec 12",event:true},
+];
+
+const LANES = [
+  {id:"jyp", name:"JYP Entertainment", role:"Production & Artist Ops", badge:"JYP"},
+  {id:"hybe", name:"HYBE", role:"Labels & Solutions", badge:"HYBE"},
+  {id:"sm", name:"SM Entertainment", role:"Production & FX", badge:"SM"},
+  {id:"yg", name:"YG Entertainment", role:"Sound & Staging", badge:"YG"},
+];
+
+const SHIPMENTS = [
+  {id:"jyp-1", lane:"jyp", day:0, title:"Stray Kids stage rig", origin:"Los Angeles, USA", mode:"Air freight", risk:"good",
+   note:"HS classification confirmed, duty pre-cleared. On track for Nov 27 arrival.", tags:["Customs Classifier","Shipping Optimizer"]},
+  {id:"jyp-2", lane:"jyp", day:3, title:"Tour merchandise, 2nd batch", origin:"Ho Chi Minh City, Vietnam", mode:"Sea freight", risk:"warn",
+   note:"HS code pending re-verification after a packaging change — recommended action: re-run classification before departure.", tags:["Customs Classifier"]},
+  {id:"hybe-1", lane:"hybe", day:2, title:"LED wall + stage tech", origin:"Eindhoven, Netherlands", mode:"Air freight", risk:"warn",
+   note:"Temporary-import bond required for re-export after the event — flagged, not yet filed.", tags:["Shipment Readiness"]},
+  {id:"hybe-2", lane:"hybe", day:3, title:"Festival-branded merch", origin:"Shenzhen, China", mode:"Sea freight", risk:"critical",
+   note:"Uses the shared FANOMENON wordmark. Joint-license sign-off is still pending on HYBE's side — see Conflict 2.", tags:["IP & Brand Risk"]},
+  {id:"sm-1", lane:"sm", day:0, title:"Pyro & special-effects rig", origin:"Osaka, Japan", mode:"Air freight", risk:"critical",
+   note:"Hazardous-materials permit not yet on file with Korean customs — recommended action: file before Nov 27 cutoff.", tags:["Customs Classifier","Shipment Readiness"]},
+  {id:"sm-2", lane:"sm", day:4, title:"Wardrobe & styling", origin:"Seoul, Korea", mode:"Domestic", risk:"good",
+   note:"Domestic transfer, no customs exposure.", tags:["Shipping Optimizer"]},
+  {id:"yg-1", lane:"yg", day:2, title:"Line-array sound system", origin:"Hamburg, Germany", mode:"Air freight", risk:"warn",
+   note:"Carnet documentation in progress — on track if filed by Nov 30.", tags:["Customs Classifier"]},
+  {id:"yg-2", lane:"yg", day:1, title:"Artist tour merchandise", origin:"Seoul, Korea", mode:"Domestic", risk:"good",
+   note:"Domestic transfer, no customs exposure.", tags:["Shipping Optimizer"]},
+];
+
+const CONFLICTS = [
+  {sev:"high", title:"Same customs window, three labels, one port",
+   text:"JYP's stage rig, SM's FX equipment, and YG's sound system are all scheduled to clear Incheon customs within the same two-day window (Nov 27–28). None of the three labels can see the other two are booked for the same slot.",
+   why:"Each label's own system only shows its own shipments — the overlap is invisible until all three show up at the same customs desk.",
+   tags:["Customs Classifier","cross-lane"]},
+  {sev:"high", title:"Shared festival mark, unresolved license, two labels shipping now",
+   text:"HYBE's and JYP's merchandise both carry the joint FANOMENON wordmark. JYP's license is confirmed; HYBE's is still pending — but HYBE's shipment departs before SM's or YG's.",
+   why:"Licensing status lives inside each label's own legal tracking. Nobody currently compares who's cleared to ship branded goods against who's actually shipping first.",
+   tags:["IP & Brand Risk","cross-lane"]},
+  {sev:"med", title:"Load-in dock double-booked at KINTEX",
+   text:"SM's FX rig and HYBE's LED wall are both scheduled for the same loading dock on Nov 29, each assuming exclusive access.",
+   why:"Venue load-in schedules are coordinated by each label's own production team — neither team has visibility into the other's dock booking.",
+   tags:["Shipment Readiness","cross-lane"]},
+];
+
+const BUILT_FROM = [
+  {tag:"existing", name:"Customs Classifier & Duty Estimator", desc:"Feeds the risk badge on every shipment chip above — same HS-code and duty logic, run once per label instead of once per company."},
+  {tag:"existing", name:"Shipping Optimizer", desc:"Supplies the mode and cost read-out (air vs. sea) behind each shipment, unchanged from the single-company version."},
+  {tag:"existing", name:"AI & Brand Risk", desc:"Flags the shared-mark licensing conflict — the same engine, pointed at a shipment that happens to involve two labels instead of one."},
+  {tag:"new", name:"Cross-agency conflict detector", desc:"The one genuinely new piece: compares all four lanes against each other for date, dock, and licensing collisions no single label's view could surface."},
+];
+
+function el(tag, cls, html){
+  const e = document.createElement(tag);
+  if(cls) e.className = cls;
+  if(html !== undefined) e.innerHTML = html;
+  return e;
+}
+
+function buildBoard(){
+  const board = document.getElementById("board");
+  board.appendChild(el("div","corner","Label"));
+  DAYS.forEach(d => {
+    const c = el("div","daycell"+(d.event?" event-day":""), `<div class="d">${d.d.split(" ")[1]}</div>${d.d.split(" ")[0]}`);
+    board.appendChild(c);
+  });
+  LANES.forEach(lane => {
+    board.appendChild(el("div","lane-label",
+      `<div class="badge">${lane.badge}</div><div class="text"><div class="name">${lane.name}</div><div class="role">${lane.role}</div></div>`));
+    DAYS.forEach((d, i) => {
+      const cell = el("div","cell");
+      cell.dataset.lane = lane.id;
+      cell.dataset.day = i;
+      board.appendChild(cell);
+    });
+  });
+  SHIPMENTS.forEach(s => {
+    const cellSel = `.cell[data-lane="${s.lane}"][data-day="${s.day}"]`;
+    const cell = board.querySelector(cellSel);
+    if(!cell) return;
+    const chip = el("button","chip risk-"+s.risk, `${s.title}<small>${s.mode}</small>`);
+    chip.dataset.id = s.id;
+    chip.addEventListener("click", () => selectShipment(s.id));
+    cell.appendChild(chip);
+  });
+}
+
+function selectShipment(id){
+  const s = SHIPMENTS.find(x => x.id === id);
+  if(!s) return;
+  document.querySelectorAll(".chip").forEach(c => c.classList.toggle("selected", c.dataset.id === id));
+  const lane = LANES.find(l => l.id === s.lane);
+  const riskLabel = {good:"Low risk", warn:"Medium risk", critical:"High risk"}[s.risk];
+  const detail = document.getElementById("detail");
+  detail.innerHTML = `
+    <div class="eyebrow">${lane.name} · ${lane.role}</div>
+    <h4>${s.title}</h4>
+    <span class="status-pill risk-${s.risk}">${riskLabel}</span>
+    <div class="row">
+      <div><b>Origin</b> · ${s.origin}</div>
+      <div><b>Mode</b> · ${s.mode}</div>
+      <div><b>Feeds from</b> · ${s.tags.join(", ")}</div>
+    </div>
+    <div class="flag risk-${s.risk}" style="background:var(--${s.risk==='good'?'good':s.risk==='warn'?'warn':'critical'}-soft); color:var(--${s.risk==='good'?'good':s.risk==='warn'?'warn':'critical'});">${s.note}</div>
+  `;
+}
+
+function buildConflicts(){
+  const wrap = document.getElementById("conflicts");
+  CONFLICTS.forEach(c => {
+    const card = el("div","conflict sev-"+(c.sev==="high"?"high":"med"));
+    card.appendChild(el("div","stripe"));
+    const body = el("div");
+    body.innerHTML = `
+      <h4>${c.title}</h4>
+      <p>${c.text}</p>
+      <span class="why">Why no single system catches this: ${c.why}</span>
+      <div class="tags">${c.tags.map(t=>`<span class="tag">${t}</span>`).join("")}</div>
+    `;
+    card.appendChild(body);
+    wrap.appendChild(card);
+  });
+}
+
+function buildFrom(){
+  const wrap = document.getElementById("builtfrom");
+  BUILT_FROM.forEach(b => {
+    const card = el("div","bf-card");
+    card.innerHTML = `<div class="tag ${b.tag}">${b.tag === "existing" ? "Already built" : "New for this layer"}</div><h5>${b.name}</h5><p>${b.desc}</p>`;
+    wrap.appendChild(card);
+  });
+}
+
+buildBoard();
+buildConflicts();
+buildFrom();
+selectShipment("hybe-2");
+</script>
