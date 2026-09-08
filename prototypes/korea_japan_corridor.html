@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<title>Korea-Japan Corridor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#eef1ee;--surface:#ffffff;--surface-2:#e2e7e1;--ink:#142019;--ink-soft:#52605a;
+  --border:#ccd4cb;--accent:#0e7c86;--accent-soft:#d9eef0;--accent-ink:#063d42;
+  --good:#227a4c;--good-soft:#e0f0e6;--warn:#9a6a10;--warn-soft:#f7ecd6;
+  --critical:#a83420;--critical-soft:#f7ded8;
+  --shadow:0 1px 2px rgba(20,32,25,.06),0 6px 20px rgba(20,32,25,.06);
+}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e1512;--surface:#161f1b;--surface-2:#1e2b25;--ink:#edf3ef;--ink-soft:#9fb0a8;
+  --border:#2b3a33;--accent:#49c8d1;--accent-soft:#123236;--accent-ink:#c9f2f4;
+  --good:#5bcf8c;--good-soft:#123424;--warn:#e3ac48;--warn-soft:#3a2c10;
+  --critical:#e37a63;--critical-soft:#3a1c14;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
+}}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--ink);padding:24px;font-size:15px;line-height:1.6;}
+.banner{background:var(--warn-soft);border:1px solid var(--warn);border-radius:8px;padding:8px 14px;font-size:12px;color:var(--warn);margin-bottom:24px;font-family:'IBM Plex Mono',monospace;}
+h1{font-size:28px;font-weight:700;margin-bottom:6px;}
+.lead{color:var(--ink-soft);margin-bottom:24px;max-width:700px;}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px;}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;box-shadow:var(--shadow);}
+.stat-num{font-size:26px;font-weight:700;color:var(--accent);font-family:'IBM Plex Mono',monospace;}
+.stat-label{font-size:12px;color:var(--ink-soft);margin-top:4px;text-transform:uppercase;letter-spacing:.5px;}
+.stat-note{font-size:11px;color:var(--ink-soft);margin-top:6px;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;box-shadow:var(--shadow);}
+.card-title{font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-soft);margin-bottom:14px;}
+.card h3{font-size:16px;font-weight:600;margin-bottom:10px;}
+ul.checks{list-style:none;display:flex;flex-direction:column;gap:8px;}
+ul.checks li{font-size:13px;color:var(--ink-soft);padding-left:20px;position:relative;}
+ul.checks li::before{content:'✓';position:absolute;left:0;color:var(--good);font-weight:700;}
+ul.checks li.warn::before{content:'⚠';color:var(--warn);}
+ul.checks li.critical::before{content:'✕';color:var(--critical);}
+.section-head{font-size:13px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.8px;margin:28px 0 14px;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{text-align:left;font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.5px;padding:8px 12px;border-bottom:2px solid var(--border);}
+td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top;}
+tr:last-child td{border-bottom:none;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;font-family:'IBM Plex Mono',monospace;}
+.badge-good{background:var(--good-soft);color:var(--good);}
+.badge-warn{background:var(--warn-soft);color:var(--warn);}
+.badge-critical{background:var(--critical-soft);color:var(--critical);}
+.badge-neutral{background:var(--surface-2);color:var(--ink-soft);}
+.insight{border-radius:10px;padding:14px 16px;margin:8px 0;font-size:13px;}
+.insight-good{background:var(--good-soft);border-left:3px solid var(--good);}
+.insight-warn{background:var(--warn-soft);border-left:3px solid var(--warn);}
+.insight-critical{background:var(--critical-soft);border-left:3px solid var(--critical);}
+.insight strong{display:block;margin-bottom:4px;}
+.flow{display:flex;align-items:center;gap:0;margin:18px 0;flex-wrap:wrap;}
+.flow-box{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12px;font-weight:600;text-align:center;min-width:110px;}
+.flow-box.kr{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-ink);}
+.flow-box.jp{background:#f0e8ff;border-color:#8b5cf6;color:#3b1a7a;}
+.flow-box.pass{background:var(--good-soft);border-color:var(--good);color:var(--good);}
+.flow-box.flag{background:var(--warn-soft);border-color:var(--warn);color:var(--warn);}
+.flow-arr{color:var(--ink-soft);font-size:18px;padding:0 6px;}
+.note{font-size:12px;color:var(--ink-soft);margin-top:20px;font-style:italic;}
+</style>
+<body>
+<div class="banner">⬡ CONCEPT SKETCH — ILLUSTRATIVE SAMPLE DATA. NOT AFFILIATED WITH OR ENDORSED BY JYP ENTERTAINMENT, SONY MUSIC JAPAN, OR NIZIU.</div>
+
+<h1>⛩️ Korea-Japan Corridor</h1>
+<p class="lead">One shipment, two customs regimes. Checking K-entertainment merchandise against both Korean export rules and Japanese import rules simultaneously — before it leaves the warehouse, not after it's held at Narita.</p>
+
+<div class="stats">
+  <div class="stat">
+    <div class="stat-num">2</div>
+    <div class="stat-label">Regulatory regimes</div>
+    <div class="stat-note">Korea export + Japan import — each with its own classification, duty, and documentation requirements</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">0</div>
+    <div class="stat-label">Shared systems today</div>
+    <div class="stat-note">No tool currently checks a single K-entertainment shipment against both regimes at once</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">NiziU</div>
+    <div class="stat-label">Real case: JYP × Sony Music Japan</div>
+    <div class="stat-note">Joint venture merchandise crosses this corridor on every tour and release cycle</div>
+  </div>
+</div>
+
+<div class="section-head">01 — How the corridor check works</div>
+
+<div class="flow">
+  <div class="flow-box">Shipment details</div>
+  <div class="flow-arr">→</div>
+  <div class="flow-box kr">🇰🇷 Korea export check</div>
+  <div class="flow-arr">→</div>
+  <div class="flow-box jp">🇯🇵 Japan import check</div>
+  <div class="flow-arr">→</div>
+  <div class="flow-box">Documentation gap</div>
+  <div class="flow-arr">→</div>
+  <div class="flow-box pass">Corridor verdict</div>
+</div>
+
+<div class="two-col">
+  <div class="card">
+    <div class="card-title">🇰🇷 Korea Export Side</div>
+    <h3>What Korea checks on exit</h3>
+    <ul class="checks">
+      <li>HS classification under Korea's Schedule B export codes</li>
+      <li>Export licence requirement (none for standard merchandise)</li>
+      <li>Strategic goods / dual-use screening (lightsticks with batteries: flag for lithium battery export rules)</li>
+      <li>Certificate of Origin — required for Japan FTA preferential rate</li>
+      <li>IP licence documentation — Korea Customs Service enforces outbound IP too</li>
+      <li class="warn">Packaging labelling in Korean — must match export invoice</li>
+    </ul>
+  </div>
+  <div class="card">
+    <div class="card-title">🇯🇵 Japan Import Side</div>
+    <h3>What Japan checks on entry</h3>
+    <ul class="checks">
+      <li>Japan Tariff Schedule classification (HS-based, 9-digit)</li>
+      <li>JKFTA preferential duty rate — requires valid Korean Certificate of Origin</li>
+      <li>PSE mark requirement — mandatory for certain electronic goods (lightsticks with charging circuits)</li>
+      <li class="warn">Japanese labelling law — country of origin + importer name in Japanese on consumer goods</li>
+      <li class="critical">Food/cosmetics prohibition — no skincare or food items without separate MHLW approval</li>
+      <li>Consumption tax (JCT) — 10% on imports above ¥10,000 declared value</li>
+    </ul>
+  </div>
+</div>
+
+<div class="section-head">02 — Sample corridor check: NiziU COLORFUL GARDEN Tour 2027</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Product</th>
+      <th>Korea HS</th>
+      <th>Japan HS</th>
+      <th>JKFTA rate</th>
+      <th>PSE required</th>
+      <th>JP labelling</th>
+      <th>Corridor status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Official lightstick (USB-C rechargeable)</strong></td>
+      <td>8513.10</td>
+      <td>8513.10-000</td>
+      <td>0% with COO</td>
+      <td><span class="badge badge-critical">YES — PSE required</span></td>
+      <td><span class="badge badge-warn">JP text needed</span></td>
+      <td><span class="badge badge-warn">RESOLVE BEFORE SHIP</span></td>
+    </tr>
+    <tr>
+      <td><strong>Cotton hoodie (official merch)</strong></td>
+      <td>6110.20</td>
+      <td>6110.20-090</td>
+      <td>0% with COO</td>
+      <td><span class="badge badge-good">Not required</span></td>
+      <td><span class="badge badge-warn">JP text needed</span></td>
+      <td><span class="badge badge-warn">MINOR FLAG</span></td>
+    </tr>
+    <tr>
+      <td><strong>Photo card set (official)</strong></td>
+      <td>4911.91</td>
+      <td>4911.91-000</td>
+      <td>0% with COO</td>
+      <td><span class="badge badge-good">Not required</span></td>
+      <td><span class="badge badge-good">Not required</span></td>
+      <td><span class="badge badge-good">CLEAR</span></td>
+    </tr>
+    <tr>
+      <td><strong>Acrylic keychain (logo)</strong></td>
+      <td>3926.40</td>
+      <td>3926.40-000</td>
+      <td>0% with COO</td>
+      <td><span class="badge badge-good">Not required</span></td>
+      <td><span class="badge badge-good">Not required</span></td>
+      <td><span class="badge badge-good">CLEAR</span></td>
+    </tr>
+    <tr>
+      <td><strong>Tote bag (canvas, branded)</strong></td>
+      <td>4202.92</td>
+      <td>4202.92-900</td>
+      <td>0% with COO</td>
+      <td><span class="badge badge-good">Not required</span></td>
+      <td><span class="badge badge-good">Not required</span></td>
+      <td><span class="badge badge-good">CLEAR</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="section-head">03 — Corridor flags for this shipment</div>
+
+<div class="insight insight-critical">
+  <strong>🔴 PSE Mark — Lightstick (USB-C rechargeable)</strong>
+  Japan's Product Safety Electrical Appliance & Materials (PSE) law requires a diamond PSE mark on rechargeable electronic products sold in Japan. This must be obtained before the product enters Japan — it cannot be resolved at customs. Lead time: 4-8 weeks. Route: apply through a Japan-registered importer or use a JQA-accredited testing body in Korea.
+</div>
+
+<div class="insight insight-warn">
+  <strong>⚠️ Japanese labelling — Hoodie & Lightstick</strong>
+  Japan's Act against Unjustifiable Premiums and Misleading Representations requires country-of-origin and importer name in Japanese on consumer goods. Must be on the product or packaging before import. Applies to both items. Estimated cost: ¥80-150 per unit for sticker labelling run.
+</div>
+
+<div class="insight insight-warn">
+  <strong>⚠️ Certificate of Origin — all items</strong>
+  JKFTA 0% preferential rate requires a valid Korean Certificate of Origin issued by the Korea Chamber of Commerce. Without it, standard Japan MFN duty rates apply (e.g. 10.9% on cotton apparel). Apply at least 5 business days before shipment.
+</div>
+
+<div class="insight insight-good">
+  <strong>✅ No dual-use / export control issues</strong>
+  Standard K-entertainment merchandise (apparel, printed goods, accessories) does not trigger Korean strategic goods export controls. Lightstick lithium battery: below the threshold that triggers Korea's battery export licence requirement at this shipment volume.
+</div>
+
+<div class="section-head">04 — What this layer adds vs checking one side at a time</div>
+
+<div class="two-col">
+  <div class="card">
+    <div class="card-title">Checking Korea only</div>
+    <h3>What you miss</h3>
+    <ul class="checks">
+      <li class="critical">PSE requirement invisible — only shows up at Narita</li>
+      <li class="critical">Japanese labelling requirement invisible until arrival</li>
+      <li class="warn">JCT calculation not visible until Japanese customs bill arrives</li>
+    </ul>
+  </div>
+  <div class="card">
+    <div class="card-title">Checking Japan only</div>
+    <h3>What you miss</h3>
+    <ul class="checks">
+      <li class="critical">Certificate of Origin not prepared — lose JKFTA 0% rate</li>
+      <li class="warn">Korea export invoice format mismatch — Japan customs rejects</li>
+      <li class="warn">Korean IP documentation not prepared for export</li>
+    </ul>
+  </div>
+</div>
+
+<div class="insight insight-good">
+  <strong>✅ The corridor check catches all six issues above in one pass</strong>
+  The same method as every other Narae layer: pull what's already tracked, hold it against both regimes at once, surface the gap before it becomes a detention or a missed duty rate.
+</div>
+
+<p class="note">Concept sketch — built to show the shape of the idea, not a working compliance tool. HS codes, duty rates, and regulatory requirements shown are illustrative and should be verified with a licensed customs professional and Japan-registered importer before shipment. If this is useful: the real version would be built against JYP/Sony Music Japan's actual NiziU merchandise catalogue and the live JKFTA tariff schedule.</p>
+</body>
+</html>

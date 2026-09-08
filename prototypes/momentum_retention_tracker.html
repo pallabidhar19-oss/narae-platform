@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<title>Momentum & Retention Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#eef1ee;--surface:#ffffff;--surface-2:#e2e7e1;--ink:#142019;--ink-soft:#52605a;
+  --border:#ccd4cb;--accent:#0e7c86;--accent-soft:#d9eef0;--accent-ink:#063d42;
+  --good:#227a4c;--good-soft:#e0f0e6;--warn:#9a6a10;--warn-soft:#f7ecd6;
+  --critical:#a83420;--critical-soft:#f7ded8;
+  --shadow:0 1px 2px rgba(20,32,25,.06),0 6px 20px rgba(20,32,25,.06);
+}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e1512;--surface:#161f1b;--surface-2:#1e2b25;--ink:#edf3ef;--ink-soft:#9fb0a8;
+  --border:#2b3a33;--accent:#49c8d1;--accent-soft:#123236;--accent-ink:#c9f2f4;
+  --good:#5bcf8c;--good-soft:#123424;--warn:#e3ac48;--warn-soft:#3a2c10;
+  --critical:#e37a63;--critical-soft:#3a1c14;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
+}}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--ink);padding:24px;font-size:15px;line-height:1.6;}
+.banner{background:var(--warn-soft);border:1px solid var(--warn);border-radius:8px;padding:8px 14px;font-size:12px;color:var(--warn);margin-bottom:24px;font-family:'IBM Plex Mono',monospace;}
+h1{font-size:28px;font-weight:700;margin-bottom:6px;}
+.lead{color:var(--ink-soft);margin-bottom:24px;max-width:700px;}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px;}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;box-shadow:var(--shadow);}
+.stat-num{font-size:26px;font-weight:700;color:var(--accent);font-family:'IBM Plex Mono',monospace;}
+.stat-label{font-size:12px;color:var(--ink-soft);margin-top:4px;text-transform:uppercase;letter-spacing:.5px;}
+.stat-note{font-size:11px;color:var(--ink-soft);margin-top:6px;}
+.section-head{font-size:13px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.8px;margin:28px 0 14px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;box-shadow:var(--shadow);margin-bottom:16px;}
+.card-title{font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-soft);margin-bottom:14px;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;font-family:'IBM Plex Mono',monospace;}
+.badge-good{background:var(--good-soft);color:var(--good);}
+.badge-warn{background:var(--warn-soft);color:var(--warn);}
+.badge-critical{background:var(--critical-soft);color:var(--critical);}
+.badge-neutral{background:var(--surface-2);color:var(--ink-soft);}
+.insight{border-radius:10px;padding:14px 16px;margin:8px 0;font-size:13px;}
+.insight-good{background:var(--good-soft);border-left:3px solid var(--good);}
+.insight-warn{background:var(--warn-soft);border-left:3px solid var(--warn);}
+.insight-critical{background:var(--critical-soft);border-left:3px solid var(--critical);}
+.insight strong{display:block;margin-bottom:4px;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{text-align:left;font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.5px;padding:8px 12px;border-bottom:2px solid var(--border);}
+td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top;}
+tr:last-child td{border-bottom:none;}
+
+/* ARTIST CARD */
+.artist-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;box-shadow:var(--shadow);}
+.artist-name{font-size:18px;font-weight:700;margin-bottom:2px;}
+.artist-label{font-size:12px;color:var(--ink-soft);margin-bottom:14px;}
+.metric-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);}
+.metric-row:last-child{border-bottom:none;}
+.metric-name{font-size:13px;color:var(--ink-soft);}
+.metric-val{font-weight:600;font-family:'IBM Plex Mono',monospace;font-size:13px;}
+.metric-trend{font-size:11px;margin-left:6px;}
+.trend-up{color:var(--good);}
+.trend-down{color:var(--critical);}
+.trend-flat{color:var(--ink-soft);}
+
+/* MINI SPARK */
+.spark{display:flex;align-items:flex-end;gap:2px;height:28px;}
+.spark-bar{width:6px;background:var(--accent);border-radius:2px;opacity:.7;}
+
+/* CONTRACT WINDOW */
+.contract-bar-wrap{background:var(--surface-2);border-radius:6px;height:12px;overflow:hidden;margin:8px 0;position:relative;}
+.contract-bar{height:100%;border-radius:6px;}
+.contract-elapsed{background:var(--accent);}
+.contract-window{position:absolute;right:0;top:0;height:100%;background:var(--warn);opacity:.7;}
+
+.note{font-size:12px;color:var(--ink-soft);margin-top:20px;font-style:italic;}
+</style>
+<body>
+<div class="banner">⬡ CONCEPT SKETCH — ILLUSTRATIVE SAMPLE DATA. USES ONLY BUSINESS-VISIBLE SIGNALS. NO HEALTH, WELLBEING, OR PERSONAL ARTIST DATA. NOT AFFILIATED WITH OR ENDORSED BY ANY LABEL OR ARTIST.</div>
+
+<h1>🌟 Momentum & Retention Tracker</h1>
+<p class="lead">Streaming, social, ticket-pace, and brand-deal momentum held against each artist's contract-renewal window. The signals that predict a renewal conversation are business-visible — agencies already track them separately. This puts them in one view, timed against the window that matters.</p>
+
+<div class="stats">
+  <div class="stat">
+    <div class="stat-num">2024</div>
+    <div class="stat-label">Stray Kids precedent</div>
+    <div class="stat-note">All 8 members renewed with JYP in 2024 — the first Big 4 group to do so unanimously. Business momentum signals were strong across all four categories.</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">4</div>
+    <div class="stat-label">Signal categories</div>
+    <div class="stat-note">Streaming trajectory, social engagement, ticket sell-through rate, brand deal activity — all business-visible, none health-related</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">18 mo</div>
+    <div class="stat-label">Typical renewal window</div>
+    <div class="stat-note">Contract conversations typically begin 12-18 months before expiry — this tracker flags when that window opens, not when it closes</div>
+  </div>
+</div>
+
+<div class="section-head">01 — Active renewal windows (illustrative)</div>
+
+<div class="three-col">
+  <div class="artist-card">
+    <div class="artist-name">Stray Kids</div>
+    <div class="artist-label">JYP Entertainment · 8 members</div>
+    <div class="metric-row">
+      <span class="metric-name">Contract status</span>
+      <span class="metric-val" style="color:var(--good);">Renewed 2024</span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-name">Next window opens</span>
+      <span class="metric-val">~2027</span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-name">Streaming MoM</span>
+      <span class="metric-val">+8.2% <span class="trend-up trend-up">↑</span></span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-name">Tour sell-through</span>
+      <span class="metric-val">96% <span class="trend-up">↑</span></span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-name">Brand deals (active)</span>
+      <span class="metric-val">14</span>
+    </div>
+    <div style="margin-top:12px;"><span class="badge badge-good">✓ STABLE</span></div>
+  </div>
+
+  <div class="artist-card">
+    <div class="artist-name">TWICE</div>
+    <div class="artist-label">JYP Entertainment · 9 members</div>
+    <div class="metric-row">
+      <span class="metric-name">Contract status</span>
+      <span class="metric-val" style="color:var(--warn);">Window open</span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-name">Window opened</span>
+      <span class="metric-val">Sep 2026</span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-name">Streaming MoM</span>
+      <span class="metric-val">+2.1% <span class="trend-flat">→</span></span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-name">Tour sell-through</span>
+      <span class="metric-val">88% <span class="trend-flat">→</span></span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-name">Brand deals (active)</span>
+      <span class="metric-val">11</span>
+    </div>
+    <div style="margin-top:12px;"><span class="badge badge-warn">⚠ MONITOR</span></div>
+  </div>
+
+  <div class="artist-card">
+    <div class="artist-name">aespa</div>
+    <div class="artist-label">SM Entertainment · 4 members</div>
+    <div class="metric-row">
+      <span class="metric-name">Contract status</span>
+      <span class="metric-val" style="color:var(--good);">Mid-contract</span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-name">Window opens</span>
+      <span class="metric-val">~2028</span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-name">Streaming MoM</span>
+      <span class="metric-val">+14.7% <span class="trend-up">↑</span></span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-name">Tour sell-through</span>
+      <span class="metric-val">99% <span class="trend-up">↑</span></span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-name">Brand deals (active)</span>
+      <span class="metric-val">18</span>
+    </div>
+    <div style="margin-top:12px;"><span class="badge badge-good">✓ STRONG</span></div>
+  </div>
+</div>
+
+<div class="section-head">02 — TWICE renewal window detail</div>
+
+<div class="card">
+  <div class="card-title">TWICE · Contract renewal window · Sep 2026 – ~Mar 2027</div>
+
+  <div style="margin-bottom:16px;">
+    <div style="font-size:12px;color:var(--ink-soft);margin-bottom:4px;">Contract elapsed vs renewal window</div>
+    <div class="contract-bar-wrap">
+      <div class="contract-bar contract-elapsed" style="width:78%;"></div>
+      <div class="contract-window" style="width:15%;"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink-soft);margin-top:4px;">
+      <span>Contract start</span>
+      <span style="color:var(--warn);">← Renewal window (now) →</span>
+      <span>Expiry</span>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr><th>Signal</th><th>Current</th><th>6 months ago</th><th>Trend</th><th>Renewal relevance</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Monthly Spotify streams</strong></td>
+        <td>112M</td>
+        <td>108M</td>
+        <td><span class="badge badge-good">↑ +3.7%</span></td>
+        <td>Stable audience base — positive signal</td>
+      </tr>
+      <tr>
+        <td><strong>Instagram engagement rate</strong></td>
+        <td>4.2%</td>
+        <td>5.1%</td>
+        <td><span class="badge badge-warn">↓ -0.9pp</span></td>
+        <td>Declining — worth monitoring vs peers</td>
+      </tr>
+      <tr>
+        <td><strong>Last tour sell-through (US)</strong></td>
+        <td>88%</td>
+        <td>91% (prior tour)</td>
+        <td><span class="badge badge-warn">↓ -3pp</span></td>
+        <td>Softening demand vs peak — note</td>
+      </tr>
+      <tr>
+        <td><strong>Active brand deals</strong></td>
+        <td>11</td>
+        <td>13</td>
+        <td><span class="badge badge-warn">↓ -2</span></td>
+        <td>Two deals not renewed — flag</td>
+      </tr>
+      <tr>
+        <td><strong>Japan market revenue</strong></td>
+        <td>+18% YoY</td>
+        <td>+22% YoY</td>
+        <td><span class="badge badge-neutral">→ Stable</span></td>
+        <td>Strong Japan base — positive anchor</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="insight insight-warn">
+  <strong>⚠️ TWICE renewal window: mixed signals</strong>
+  Streaming base is stable and Japan revenue is strong. However: social engagement declining, two brand deals not renewed, and US tour sell-through softened vs prior cycle. No single signal is alarming — but the combination, timed against an open renewal window, warrants a closer commercial review before the window closes in early 2027.
+</div>
+
+<div class="insight insight-good">
+  <strong>✅ What this tracker does NOT do</strong>
+  This layer uses only business-visible signals that agencies already track: streaming data (public), tour capacity (operations), brand deals (commercial team), social engagement (marketing). It contains no health data, no personal communications, no member-specific wellbeing assessments, and no new artist-facing tracking of any kind. The Stray Kids 2024 renewal is used as a grounding reference — their renewal signals were uniformly strong across all four categories shown here.
+</div>
+
+<div class="section-head">03 — What the Stray Kids 2024 renewal looked like in this framework</div>
+
+<table>
+  <thead>
+    <tr><th>Signal category</th><th>Status at renewal (2024)</th><th>Assessment</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Streaming trajectory</td>
+      <td>+22% YoY — accelerating</td>
+      <td><span class="badge badge-good">Strong</span></td>
+    </tr>
+    <tr>
+      <td>Tour demand</td>
+      <td>MANIAC Tour: 99% sell-through, 3 US stadium dates added</td>
+      <td><span class="badge badge-good">Exceptional</span></td>
+    </tr>
+    <tr>
+      <td>Brand deal activity</td>
+      <td>Multiple global luxury and tech partnerships added in 12 months prior</td>
+      <td><span class="badge badge-good">Growing</span></td>
+    </tr>
+    <tr>
+      <td>Social engagement</td>
+      <td>Fancam virality, sustained engagement above 6% on core platforms</td>
+      <td><span class="badge badge-good">Strong</span></td>
+    </tr>
+    <tr>
+      <td>All 8 members renewed</td>
+      <td>First Big 4 group to do so unanimously</td>
+      <td><span class="badge badge-good">Outcome: unanimous renewal</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<p class="note">Concept sketch — all signal values, contract timelines, and artist-specific data shown here are illustrative. The Stray Kids 2024 renewal is a real documented outcome; the signals attributed to it above are reconstructed for illustration and not sourced from internal agency data. If this is useful: the real version would be built against actual streaming API data, confirmed tour sell-through figures, and the label's own commercial records — using only data the label already holds.</p>
+</body>
+</html>

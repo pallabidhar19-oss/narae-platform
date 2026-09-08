@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<title>Comeback Release Countdown</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#eef1ee;--surface:#ffffff;--surface-2:#e2e7e1;--ink:#142019;--ink-soft:#52605a;
+  --border:#ccd4cb;--accent:#0e7c86;--accent-soft:#d9eef0;--accent-ink:#063d42;
+  --good:#227a4c;--good-soft:#e0f0e6;--warn:#9a6a10;--warn-soft:#f7ecd6;
+  --critical:#a83420;--critical-soft:#f7ded8;
+  --shadow:0 1px 2px rgba(20,32,25,.06),0 6px 20px rgba(20,32,25,.06);
+}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e1512;--surface:#161f1b;--surface-2:#1e2b25;--ink:#edf3ef;--ink-soft:#9fb0a8;
+  --border:#2b3a33;--accent:#49c8d1;--accent-soft:#123236;--accent-ink:#c9f2f4;
+  --good:#5bcf8c;--good-soft:#123424;--warn:#e3ac48;--warn-soft:#3a2c10;
+  --critical:#e37a63;--critical-soft:#3a1c14;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
+}}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--ink);padding:24px;font-size:15px;line-height:1.6;}
+.banner{background:var(--warn-soft);border:1px solid var(--warn);border-radius:8px;padding:8px 14px;font-size:12px;color:var(--warn);margin-bottom:24px;font-family:'IBM Plex Mono',monospace;}
+h1{font-size:28px;font-weight:700;margin-bottom:6px;}
+.lead{color:var(--ink-soft);margin-bottom:24px;max-width:700px;}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px;}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;box-shadow:var(--shadow);}
+.stat-num{font-size:26px;font-weight:700;color:var(--accent);font-family:'IBM Plex Mono',monospace;}
+.stat-label{font-size:12px;color:var(--ink-soft);margin-top:4px;text-transform:uppercase;letter-spacing:.5px;}
+.stat-note{font-size:11px;color:var(--ink-soft);margin-top:6px;}
+.section-head{font-size:13px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.8px;margin:28px 0 14px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;box-shadow:var(--shadow);margin-bottom:16px;}
+.card-title{font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-soft);margin-bottom:14px;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;font-family:'IBM Plex Mono',monospace;}
+.badge-good{background:var(--good-soft);color:var(--good);}
+.badge-warn{background:var(--warn-soft);color:var(--warn);}
+.badge-critical{background:var(--critical-soft);color:var(--critical);}
+.badge-neutral{background:var(--surface-2);color:var(--ink-soft);}
+.insight{border-radius:10px;padding:14px 16px;margin:8px 0;font-size:13px;}
+.insight-good{background:var(--good-soft);border-left:3px solid var(--good);}
+.insight-warn{background:var(--warn-soft);border-left:3px solid var(--warn);}
+.insight-critical{background:var(--critical-soft);border-left:3px solid var(--critical);}
+.insight strong{display:block;margin-bottom:4px;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{text-align:left;font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.5px;padding:8px 12px;border-bottom:2px solid var(--border);}
+td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top;}
+tr:last-child td{border-bottom:none;}
+
+/* TIMELINE */
+.timeline{position:relative;padding-left:28px;margin:8px 0 20px;}
+.timeline::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:2px;background:var(--border);}
+.tl-item{position:relative;margin-bottom:20px;}
+.tl-dot{position:absolute;left:-24px;top:4px;width:12px;height:12px;border-radius:50%;border:2px solid var(--border);background:var(--surface);}
+.tl-dot.good{background:var(--good);border-color:var(--good);}
+.tl-dot.warn{background:var(--warn);border-color:var(--warn);}
+.tl-dot.critical{background:var(--critical);border-color:var(--critical);}
+.tl-dot.done{background:var(--accent);border-color:var(--accent);}
+.tl-dot.today{background:var(--ink);border-color:var(--ink);box-shadow:0 0 0 3px rgba(20,32,25,.2);}
+.tl-date{font-size:11px;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;margin-bottom:2px;}
+.tl-label{font-weight:600;font-size:14px;}
+.tl-sub{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+.tl-badge{margin-top:4px;}
+
+/* PROGRESS BAR */
+.prog-wrap{background:var(--surface-2);border-radius:6px;height:10px;overflow:hidden;margin:8px 0;}
+.prog-bar{height:100%;border-radius:6px;transition:width .3s;}
+.prog-good{background:var(--good);}
+.prog-warn{background:var(--warn);}
+.prog-critical{background:var(--critical);}
+
+/* MILESTONES GRID */
+.milestone-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:12px;}
+.milestone{background:var(--surface-2);border-radius:10px;padding:14px;}
+.ms-label{font-size:12px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+.ms-date{font-size:14px;font-weight:600;font-family:'IBM Plex Mono',monospace;}
+.ms-status{font-size:12px;margin-top:4px;}
+
+.note{font-size:12px;color:var(--ink-soft);margin-top:20px;font-style:italic;}
+</style>
+<body>
+<div class="banner">⬡ CONCEPT SKETCH — ILLUSTRATIVE SAMPLE DATA. SEVENTEEN's HAPPY BURSTDAY SHIPPING DELAY IS A REAL DOCUMENTED INCIDENT; THE MILESTONE TIMELINE BELOW IS CONSTRUCTED FOR ILLUSTRATION.</div>
+
+<h1>⏱️ Comeback Release Countdown</h1>
+<p class="lead">One date that can't move: the release. Every production and logistics milestone held against it — so a slip in manufacturing shows up as a shipping risk three weeks before it becomes a crisis at customs.</p>
+
+<div class="stats">
+  <div class="stat">
+    <div class="stat-num">1</div>
+    <div class="stat-label">Date that can't move</div>
+    <div class="stat-note">Release date is set weeks before merch leaves the factory — fan announcements, streaming premieres, and tour dates are locked</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">4+</div>
+    <div class="stat-label">Handoffs before release</div>
+    <div class="stat-note">Production → QC → warehouse → freight → customs → venue. Each one invisible to the next unless there's a shared view</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">HAPPY BURSTDAY</div>
+    <div class="stat-label">Real precedent</div>
+    <div class="stat-note">SEVENTEEN's 2025 US tour merch arrived after show dates due to a shipping delay that started at production — documented publicly by fans and media</div>
+  </div>
+</div>
+
+<div class="section-head">01 — Sample comeback: SEVENTEEN SPILL THE FEELS (Illustrative)</div>
+
+<div class="card">
+  <div class="card-title">Release parameters</div>
+  <div class="two-col">
+    <div>
+      <div style="font-size:13px;color:var(--ink-soft);margin-bottom:4px;">Artist</div>
+      <div style="font-weight:600;">SEVENTEEN</div>
+      <div style="font-size:13px;color:var(--ink-soft);margin:12px 0 4px;">Album title</div>
+      <div style="font-weight:600;">SPILL THE FEELS <span style="font-size:12px;color:var(--ink-soft);">(illustrative)</span></div>
+      <div style="font-size:13px;color:var(--ink-soft);margin:12px 0 4px;">Release date</div>
+      <div style="font-weight:600;font-family:'IBM Plex Mono',monospace;color:var(--critical);">March 28, 2027 — FIXED</div>
+    </div>
+    <div>
+      <div style="font-size:13px;color:var(--ink-soft);margin-bottom:4px;">Primary merch market</div>
+      <div style="font-weight:600;">United States (first ship)</div>
+      <div style="font-size:13px;color:var(--ink-soft);margin:12px 0 4px;">Merch production location</div>
+      <div style="font-weight:600;">South Korea (Seoul factory)</div>
+      <div style="font-size:13px;color:var(--ink-soft);margin:12px 0 4px;">Overall countdown status</div>
+      <div><span class="badge badge-warn">⚠ AT RISK — 1 milestone slipped</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="section-head">02 — Milestone timeline</div>
+
+<div class="card">
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-dot done"></div>
+      <div class="tl-date">Jan 15, 2027</div>
+      <div class="tl-label">Design finalised & approved</div>
+      <div class="tl-sub">All artwork, colourways, and product specs signed off by HYBE creative</div>
+      <div class="tl-badge"><span class="badge badge-good">✓ COMPLETE</span></div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot done"></div>
+      <div class="tl-date">Jan 28, 2027</div>
+      <div class="tl-label">Manufacturing order placed</div>
+      <div class="tl-sub">Factory confirmed: 45-day production run. Target completion Feb 28.</div>
+      <div class="tl-badge"><span class="badge badge-good">✓ COMPLETE</span></div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot warn"></div>
+      <div class="tl-date">Feb 28, 2027 → <strong>Mar 7, 2027</strong></div>
+      <div class="tl-label">Production completion</div>
+      <div class="tl-sub">Factory reported 7-day delay due to fabric supply shortage. New completion: Mar 7.</div>
+      <div class="tl-badge"><span class="badge badge-critical">⚠ SLIPPED 7 DAYS</span></div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot warn"></div>
+      <div class="tl-date">Mar 7, 2027 (was: Feb 28)</div>
+      <div class="tl-label">QC inspection & warehouse handoff</div>
+      <div class="tl-sub">2 days for QC. Pushed to Mar 9 by production slip.</div>
+      <div class="tl-badge"><span class="badge badge-warn">⚠ PUSHED</span></div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot warn"></div>
+      <div class="tl-date">Mar 9, 2027 (was: Mar 2)</div>
+      <div class="tl-label">Air freight departure — ICN → JFK</div>
+      <div class="tl-sub">Transit: 3 days. US customs clearance: 4 days. Arrives Mar 16.</div>
+      <div class="tl-badge"><span class="badge badge-warn">⚠ PUSHED — buffer now 12 days (was: 19)</span></div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot good"></div>
+      <div class="tl-date">Mar 16, 2027</div>
+      <div class="tl-label">US warehouse received</div>
+      <div class="tl-sub">12 days to release date. Sufficient for fulfilment if no further slips.</div>
+      <div class="tl-badge"><span class="badge badge-good">ON TRACK (revised)</span></div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot critical" style="border-color:var(--critical);background:var(--critical);"></div>
+      <div class="tl-date">Mar 28, 2027</div>
+      <div class="tl-label" style="color:var(--critical);">★ RELEASE DATE — FIXED</div>
+      <div class="tl-sub">Album drops. Physical merch must be at US fulfilment centres. No extensions.</div>
+    </div>
+  </div>
+</div>
+
+<div class="section-head">03 — Buffer analysis</div>
+
+<div class="milestone-grid">
+  <div class="milestone">
+    <div class="ms-label">Original buffer to release</div>
+    <div class="ms-date">26 days</div>
+    <div class="ms-status" style="color:var(--good);">✓ Comfortable</div>
+  </div>
+  <div class="milestone">
+    <div class="ms-label">Current buffer (post-slip)</div>
+    <div class="ms-date">19 days</div>
+    <div class="ms-status" style="color:var(--warn);">⚠ Reduced — monitor closely</div>
+  </div>
+  <div class="milestone">
+    <div class="ms-label">Days lost to production slip</div>
+    <div class="ms-date">7 days</div>
+    <div class="ms-status" style="color:var(--critical);">All absorbed into freight buffer</div>
+  </div>
+  <div class="milestone">
+    <div class="ms-label">Additional slippage limit</div>
+    <div class="ms-date">5 days max</div>
+    <div class="ms-status" style="color:var(--warn);">Beyond this: upgrade to express courier or local-source select SKUs</div>
+  </div>
+</div>
+
+<div class="section-head">04 — What the SEVENTEEN HAPPY BURSTDAY case showed</div>
+
+<div class="insight insight-critical">
+  <strong>🔴 The slip started at production — it became a story at the venue</strong>
+  SEVENTEEN's 2025 US tour merch arrived after fans had already attended shows — the delay was publicly documented across fan communities and entertainment media. The root cause traced back to production and logistics timing, not a single customs hold. By the time the delay was visible to operations, there was no recovery option.
+</div>
+
+<div class="insight insight-warn">
+  <strong>⚠️ A 7-day production slip compounds through every downstream step</strong>
+  Production delay → QC pushed → freight departure pushed → customs clearance pushed → fulfilment pushed. Each handoff is invisible to the next team unless there's a shared timeline. The freight team doesn't know production slipped until they're asked for a truck that isn't coming.
+</div>
+
+<div class="insight insight-good">
+  <strong>✅ What this layer adds</strong>
+  The same approach as every other Narae module: aggregate what's already tracked — production schedules, freight bookings, customs timelines — into one view, held against the one date that can't move. A 7-day production slip shows up here as a shipping risk on day 1, not when the truck doesn't arrive.
+</div>
+
+<div class="section-head">05 — All active comebacks (illustrative)</div>
+
+<table>
+  <thead>
+    <tr><th>Artist</th><th>Release</th><th>Primary market</th><th>Buffer</th><th>Status</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>SEVENTEEN</strong><br><span style="font-size:11px;color:var(--ink-soft);">SPILL THE FEELS</span></td>
+      <td>Mar 28, 2027</td>
+      <td>United States</td>
+      <td>19 days</td>
+      <td><span class="badge badge-warn">⚠ AT RISK</span></td>
+    </tr>
+    <tr>
+      <td><strong>Stray Kids</strong><br><span style="font-size:11px;color:var(--ink-soft);">NEW CHAPTER</span></td>
+      <td>Apr 14, 2027</td>
+      <td>Japan + US</td>
+      <td>34 days</td>
+      <td><span class="badge badge-good">✓ ON TRACK</span></td>
+    </tr>
+    <tr>
+      <td><strong>aespa</strong><br><span style="font-size:11px;color:var(--ink-soft);">SYNK: OVERDRIVE</span></td>
+      <td>Apr 22, 2027</td>
+      <td>United Kingdom</td>
+      <td>41 days</td>
+      <td><span class="badge badge-good">✓ ON TRACK</span></td>
+    </tr>
+    <tr>
+      <td><strong>BLACKPINK</strong><br><span style="font-size:11px;color:var(--ink-soft);">PINK VENOM II</span></td>
+      <td>May 3, 2027</td>
+      <td>United States</td>
+      <td>8 days</td>
+      <td><span class="badge badge-critical">🔴 CRITICAL</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<p class="note">Concept sketch — all artist names, album titles, release dates, and production timelines are illustrative. SEVENTEEN's HAPPY BURSTDAY shipping delay is a real, publicly documented incident used as a grounding reference — the milestone timeline above is constructed for illustration purposes. If this is useful: happy to build a real version against actual comeback production schedules.</p>
+</body>
+</html>

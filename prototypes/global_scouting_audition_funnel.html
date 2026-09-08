@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<title>Global Scouting & Audition Funnel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#eef1ee;--surface:#ffffff;--surface-2:#e2e7e1;--ink:#142019;--ink-soft:#52605a;
+  --border:#ccd4cb;--accent:#0e7c86;--accent-soft:#d9eef0;--accent-ink:#063d42;
+  --good:#227a4c;--good-soft:#e0f0e6;--warn:#9a6a10;--warn-soft:#f7ecd6;
+  --critical:#a83420;--critical-soft:#f7ded8;
+  --shadow:0 1px 2px rgba(20,32,25,.06),0 6px 20px rgba(20,32,25,.06);
+}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e1512;--surface:#161f1b;--surface-2:#1e2b25;--ink:#edf3ef;--ink-soft:#9fb0a8;
+  --border:#2b3a33;--accent:#49c8d1;--accent-soft:#123236;--accent-ink:#c9f2f4;
+  --good:#5bcf8c;--good-soft:#123424;--warn:#e3ac48;--warn-soft:#3a2c10;
+  --critical:#e37a63;--critical-soft:#3a1c14;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
+}}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--ink);padding:24px;font-size:15px;line-height:1.6;}
+.banner{background:var(--warn-soft);border:1px solid var(--warn);border-radius:8px;padding:8px 14px;font-size:12px;color:var(--warn);margin-bottom:24px;font-family:'IBM Plex Mono',monospace;}
+h1{font-size:28px;font-weight:700;margin-bottom:6px;}
+.lead{color:var(--ink-soft);margin-bottom:24px;max-width:700px;}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px;}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;box-shadow:var(--shadow);}
+.stat-num{font-size:26px;font-weight:700;color:var(--accent);font-family:'IBM Plex Mono',monospace;}
+.stat-label{font-size:12px;color:var(--ink-soft);margin-top:4px;text-transform:uppercase;letter-spacing:.5px;}
+.stat-note{font-size:11px;color:var(--ink-soft);margin-top:6px;}
+.section-head{font-size:13px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.8px;margin:28px 0 14px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;box-shadow:var(--shadow);margin-bottom:16px;}
+.card-title{font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-soft);margin-bottom:14px;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;font-family:'IBM Plex Mono',monospace;}
+.badge-good{background:var(--good-soft);color:var(--good);}
+.badge-warn{background:var(--warn-soft);color:var(--warn);}
+.badge-critical{background:var(--critical-soft);color:var(--critical);}
+.badge-neutral{background:var(--surface-2);color:var(--ink-soft);}
+.insight{border-radius:10px;padding:14px 16px;margin:8px 0;font-size:13px;}
+.insight-good{background:var(--good-soft);border-left:3px solid var(--good);}
+.insight-warn{background:var(--warn-soft);border-left:3px solid var(--warn);}
+.insight-critical{background:var(--critical-soft);border-left:3px solid var(--critical);}
+.insight strong{display:block;margin-bottom:4px;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{text-align:left;font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.5px;padding:8px 12px;border-bottom:2px solid var(--border);}
+td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top;}
+tr:last-child td{border-bottom:none;}
+
+/* FUNNEL */
+.funnel{display:flex;flex-direction:column;gap:4px;margin:16px 0;}
+.funnel-stage{border-radius:8px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;transition:all .2s;}
+.funnel-stage-1{background:var(--accent-soft);border:1px solid var(--accent);width:100%;}
+.funnel-stage-2{background:var(--surface-2);border:1px solid var(--border);width:85%;}
+.funnel-stage-3{background:var(--surface-2);border:1px solid var(--border);width:60%;}
+.funnel-stage-4{background:var(--surface-2);border:1px solid var(--border);width:40%;}
+.funnel-stage-5{background:var(--warn-soft);border:1px solid var(--warn);width:20%;}
+.funnel-stage-6{background:var(--good-soft);border:1px solid var(--good);width:8%;}
+.fs-label{font-weight:600;font-size:14px;}
+.fs-count{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:16px;color:var(--accent);}
+.fs-sub{font-size:11px;color:var(--ink-soft);margin-top:2px;}
+.fs-right{text-align:right;}
+
+/* REGION MAP */
+.region-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px;}
+.region-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;box-shadow:var(--shadow);}
+.region-name{font-weight:600;font-size:13px;margin-bottom:8px;}
+.region-stat{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid var(--border);}
+.region-stat:last-child{border-bottom:none;}
+.region-stat-label{color:var(--ink-soft);}
+
+.note{font-size:12px;color:var(--ink-soft);margin-top:20px;font-style:italic;}
+</style>
+<body>
+<div class="banner">⬡ CONCEPT SKETCH — ILLUSTRATIVE SAMPLE DATA. GROUNDED IN HYBE'S REAL 2026 INTEGRATED GLOBAL AUDITION ANNOUNCEMENT. ALL APPLICANT NUMBERS AND FUNNEL DATA ARE CONSTRUCTED FOR ILLUSTRATION. NOT AFFILIATED WITH OR ENDORSED BY HYBE, JYP, SM, YG, OR ANY LABEL.</div>
+
+<h1>🌐 Global Scouting & Audition Funnel</h1>
+<p class="lead">Tracks a shared applicant pool stage-by-stage across labels — grounded in HYBE's real 2026 eight-label Integrated Global Audition and the industry's shrinking, leakier trainee pipeline. The same talent appearing in multiple labels' funnels is invisible unless there's one view across them.</p>
+
+<div class="stats">
+  <div class="stat">
+    <div class="stat-num">8</div>
+    <div class="stat-label">HYBE labels in 2026 IGA</div>
+    <div class="stat-note">HYBE's 2026 Integrated Global Audition spans all eight labels simultaneously — the first multi-label audition of its scale in K-pop history</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">42</div>
+    <div class="stat-label">Countries in scope</div>
+    <div class="stat-note">K-pop scouting now covers Southeast Asia, Latin America, Europe, and North America — talent sourcing is genuinely global</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">Shrinking</div>
+    <div class="stat-label">Trainee pipeline</div>
+    <div class="stat-note">Industry-wide concern: top talent increasingly chooses between labels earlier, and the window to sign is narrowing as independent alternatives grow</div>
+  </div>
+</div>
+
+<div class="section-head">01 — Audition funnel: HYBE 2026 Integrated Global Audition (illustrative scale)</div>
+
+<div class="funnel">
+  <div class="funnel-stage funnel-stage-1">
+    <div>
+      <div class="fs-label">Stage 1 — Applications received</div>
+      <div class="fs-sub">Online submission: video, photo, basic profile. 42 countries.</div>
+    </div>
+    <div class="fs-right">
+      <div class="fs-count">284,000</div>
+      <div class="fs-sub">Total applicants</div>
+    </div>
+  </div>
+  <div class="funnel-stage funnel-stage-2">
+    <div>
+      <div class="fs-label">Stage 2 — First screening</div>
+      <div class="fs-sub">Internal review team: basic criteria pass rate</div>
+    </div>
+    <div class="fs-right">
+      <div class="fs-count">41,200</div>
+      <div class="fs-sub">Passed (~14.5%)</div>
+    </div>
+  </div>
+  <div class="funnel-stage funnel-stage-3">
+    <div>
+      <div class="fs-label">Stage 3 — Regional auditions</div>
+      <div class="fs-sub">In-person or video call review in 12 regional hubs</div>
+    </div>
+    <div class="fs-right">
+      <div class="fs-count">8,800</div>
+      <div class="fs-sub">Invited (~21% of Stage 2)</div>
+    </div>
+  </div>
+  <div class="funnel-stage funnel-stage-4">
+    <div>
+      <div class="fs-label">Stage 4 — Seoul callbacks</div>
+      <div class="fs-sub">Travel to Seoul for in-person evaluation by label A&R</div>
+    </div>
+    <div class="fs-right">
+      <div class="fs-count">1,240</div>
+      <div class="fs-sub">Called back (~14% of Stage 3)</div>
+    </div>
+  </div>
+  <div class="funnel-stage funnel-stage-5">
+    <div>
+      <div class="fs-label">Stage 5 — Trainee offers</div>
+      <div class="fs-sub">Contract offered across multiple HYBE labels</div>
+    </div>
+    <div class="fs-right">
+      <div class="fs-count">89</div>
+      <div class="fs-sub">Offered (~7.2% of callbacks)</div>
+    </div>
+  </div>
+  <div class="funnel-stage funnel-stage-6">
+    <div>
+      <div class="fs-label">Stage 6 — Signed trainees</div>
+      <div class="fs-sub">Accepted and commenced training contracts</div>
+    </div>
+    <div class="fs-right">
+      <div class="fs-count">62</div>
+      <div class="fs-sub">Signed (70% offer acceptance)</div>
+    </div>
+  </div>
+</div>
+
+<div class="section-head">02 — Regional breakdown</div>
+
+<div class="region-grid">
+  <div class="region-card">
+    <div class="region-name">🇰🇷 Korea</div>
+    <div class="region-stat"><span class="region-stat-label">Applications</span><span>48,200</span></div>
+    <div class="region-stat"><span class="region-stat-label">Stage 3 rate</span><span>18%</span></div>
+    <div class="region-stat"><span class="region-stat-label">Signed</span><span>24</span></div>
+    <div class="region-stat"><span class="region-stat-label">Status</span><span style="color:var(--good);">Strong</span></div>
+  </div>
+  <div class="region-card">
+    <div class="region-name">🌏 SE Asia</div>
+    <div class="region-stat"><span class="region-stat-label">Applications</span><span>82,400</span></div>
+    <div class="region-stat"><span class="region-stat-label">Stage 3 rate</span><span>22%</span></div>
+    <div class="region-stat"><span class="region-stat-label">Signed</span><span>19</span></div>
+    <div class="region-stat"><span class="region-stat-label">Status</span><span style="color:var(--good);">Fastest growing</span></div>
+  </div>
+  <div class="region-card">
+    <div class="region-name">🌎 Americas</div>
+    <div class="region-stat"><span class="region-stat-label">Applications</span><span>61,800</span></div>
+    <div class="region-stat"><span class="region-stat-label">Stage 3 rate</span><span>9%</span></div>
+    <div class="region-stat"><span class="region-stat-label">Signed</span><span>8</span></div>
+    <div class="region-stat"><span class="region-stat-label">Status</span><span style="color:var(--warn);">High volume, low pass</span></div>
+  </div>
+  <div class="region-card">
+    <div class="region-name">🌍 Europe</div>
+    <div class="region-stat"><span class="region-stat-label">Applications</span><span>34,600</span></div>
+    <div class="region-stat"><span class="region-stat-label">Stage 3 rate</span><span>11%</span></div>
+    <div class="region-stat"><span class="region-stat-label">Signed</span><span>6</span></div>
+    <div class="region-stat"><span class="region-stat-label">Status</span><span style="color:var(--good);">Improving YoY</span></div>
+  </div>
+</div>
+
+<div class="section-head">03 — Cross-label visibility gap</div>
+
+<div class="two-col">
+  <div class="card">
+    <div class="card-title">Today — four separate funnels</div>
+    <ul style="list-style:none;display:flex;flex-direction:column;gap:8px;font-size:13px;">
+      <li style="padding-left:18px;position:relative;"><span style="position:absolute;left:0;color:var(--critical);">✕</span> JYP and HYBE both scouting the same Southeast Asia applicant pool independently</li>
+      <li style="padding-left:18px;position:relative;"><span style="position:absolute;left:0;color:var(--critical);">✕</span> A top applicant who declines HYBE's offer is not flagged to JYP automatically</li>
+      <li style="padding-left:18px;position:relative;"><span style="position:absolute;left:0;color:var(--critical);">✕</span> No shared view of which regions are producing the highest quality applicants vs. which have high volume but low pass rates</li>
+      <li style="padding-left:18px;position:relative;"><span style="position:absolute;left:0;color:var(--critical);">✕</span> Stage 3 drop-off reasons unshared — all four labels re-learn the same regional market characteristics independently</li>
+    </ul>
+  </div>
+  <div class="card">
+    <div class="card-title">With this layer</div>
+    <ul style="list-style:none;display:flex;flex-direction:column;gap:8px;font-size:13px;">
+      <li style="padding-left:18px;position:relative;"><span style="position:absolute;left:0;color:var(--good);">✓</span> One funnel view across all participating labels — shared at the aggregate stage level, not individual applicant data</li>
+      <li style="padding-left:18px;position:relative;"><span style="position:absolute;left:0;color:var(--good);">✓</span> Regional pass-rate benchmarks visible across labels — so each A&R team calibrates against the same market reality</li>
+      <li style="padding-left:18px;position:relative;"><span style="position:absolute;left:0;color:var(--good);">✓</span> Applicant privacy maintained — no individual applicant data crosses label boundaries; only aggregate stage counts</li>
+      <li style="padding-left:18px;position:relative;"><span style="position:absolute;left:0;color:var(--good);">✓</span> Shared regional intelligence: SE Asia producing highest quality applicants at Stage 3 — all four labels can weight their scouting budgets accordingly</li>
+    </ul>
+  </div>
+</div>
+
+<div class="insight insight-warn">
+  <strong>⚠️ The pipeline is shrinking — the window to move is narrowing</strong>
+  Industry reporting indicates that top-tier applicants — those who pass Stage 3 consistently — are receiving offers from multiple labels simultaneously and from independent agencies. The 70% acceptance rate shown above is illustrative; real acceptance rates have reportedly declined as alternatives to the Big 4 trainee model grow. Earlier identification and faster offer processes are the only structural response.
+</div>
+
+<div class="insight insight-good">
+  <strong>✅ What this layer does NOT do</strong>
+  This layer tracks aggregate funnel metrics only — stage counts, regional pass rates, offer-to-sign ratios. It does not track, store, or share individual applicant identities, evaluations, or scores across labels. Each label's A&R assessments remain private. The shared view is: how many, from where, at what stage — not who or what was said about them.
+</div>
+
+<div class="section-head">04 — Audition efficiency benchmarks (illustrative)</div>
+
+<table>
+  <thead>
+    <tr><th>Metric</th><th>HYBE 2026 IGA</th><th>Industry avg (est.)</th><th>Assessment</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Stage 1 → Stage 3 conversion</td>
+      <td>3.1%</td>
+      <td>2-4%</td>
+      <td><span class="badge badge-good">On benchmark</span></td>
+    </tr>
+    <tr>
+      <td>Callback → offer rate</td>
+      <td>7.2%</td>
+      <td>5-10%</td>
+      <td><span class="badge badge-good">On benchmark</span></td>
+    </tr>
+    <tr>
+      <td>Offer acceptance rate</td>
+      <td>70%</td>
+      <td>75-85% (historical)</td>
+      <td><span class="badge badge-warn">Below historical norm</span></td>
+    </tr>
+    <tr>
+      <td>SE Asia applicant share</td>
+      <td>29%</td>
+      <td>18% (5 years ago)</td>
+      <td><span class="badge badge-good">Fastest growing region</span></td>
+    </tr>
+    <tr>
+      <td>Americas Stage 3 pass rate</td>
+      <td>9%</td>
+      <td>15% (Korea baseline)</td>
+      <td><span class="badge badge-warn">Regional gap — investigate</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<p class="note">Concept sketch — all applicant numbers, funnel conversion rates, and regional data are illustrative. HYBE's 2026 Integrated Global Audition across eight labels is a real, publicly announced initiative; the funnel data shown above is constructed for illustration and not sourced from HYBE's internal records. If this is useful: the real version would be built against actual audition management system data, with strict applicant privacy controls and aggregate-only cross-label sharing.</p>
+</body>
+</html>
