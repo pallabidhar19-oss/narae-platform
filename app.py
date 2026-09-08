@@ -142,13 +142,34 @@ def flow_diagram(steps):
     return f'<div class="flow-diagram">{"".join(parts)}</div>'
 
 
-def render_breakeven_chart(weight, air_rate, sea_rate, sea_min):
+def air_chargeable_weight(actual_kg, length_cm, width_cm, height_cm):
+    """Air freight bills whichever is greater: actual weight, or volumetric
+    weight (L x W x H in cm, divided by the IATA standard divisor of 6000).
+    Bulky-but-light cargo — apparel, lightsticks, posters — is exactly the
+    case where volumetric weight exceeds actual weight."""
+    if length_cm and width_cm and height_cm:
+        volumetric_kg = (length_cm * width_cm * height_cm) / 6000
+        return max(actual_kg, volumetric_kg)
+    return actual_kg
+
+
+def sea_revenue_weight(actual_kg, length_cm, width_cm, height_cm):
+    """Sea freight (LCL) bills by revenue ton: whichever is greater between
+    actual weight and volume, using the standard ocean-freight convention
+    that 1 CBM = 1,000 kg for comparison."""
+    if length_cm and width_cm and height_cm:
+        cbm = (length_cm * width_cm * height_cm) / 1_000_000
+        return max(actual_kg, cbm * 1000)
+    return actual_kg
+
+
+def render_breakeven_chart(air_weight, sea_weight, air_rate, sea_rate, sea_min):
     """SVG chart showing air cost (linear) vs sea cost (flat minimum, then
-    linear) across weight, marking the current shipment and the break-even
-    point where sea overtakes air as the cheaper option."""
+    linear) across weight, marking each mode's own chargeable/revenue
+    weight for the current shipment and the break-even point."""
     breakeven = (sea_min / air_rate) if air_rate else 0
     w0 = (sea_min / sea_rate) if sea_rate else 0
-    x_max = max(weight, breakeven, 1) * 2.2
+    x_max = max(air_weight, sea_weight, breakeven, 1) * 2.2
 
     def cost_air(w):
         return air_rate * w
@@ -177,9 +198,10 @@ def render_breakeven_chart(weight, air_rate, sea_rate, sea_min):
     else:
         sea_line = f"{px(0):.1f},{py(sea_min):.1f} {px(x_max):.1f},{py(sea_min):.1f}"
 
-    cur_x = px(weight)
-    cur_air_y = py(cost_air(weight))
-    cur_sea_y = py(cost_sea(weight))
+    air_x = px(air_weight)
+    air_y = py(cost_air(air_weight))
+    sea_x = px(sea_weight)
+    sea_y = py(cost_sea(sea_weight))
 
     be_marker = ""
     if breakeven < x_max:
@@ -191,17 +213,16 @@ def render_breakeven_chart(weight, air_rate, sea_rate, sea_min):
             f'Break-even &#8776; {breakeven:.0f} kg</text>'
         )
 
-    label_y = min(cur_air_y, cur_sea_y) - 10
-
     svg = f'''<svg viewBox="0 0 {W} {H}" style="width:100%;height:auto;">
 <line x1="{ml}" y1="{mt}" x2="{ml}" y2="{mt+ph}" stroke="rgba(232,232,240,0.25)" stroke-width="1"/>
 <line x1="{ml}" y1="{mt+ph}" x2="{ml+pw}" y2="{mt+ph}" stroke="rgba(232,232,240,0.25)" stroke-width="1"/>
 {be_marker}
 <polyline points="{air_line}" fill="none" stroke="#a78bfa" stroke-width="2.5"/>
 <polyline points="{sea_line}" fill="none" stroke="#34d399" stroke-width="2.5"/>
-<circle cx="{cur_x:.1f}" cy="{cur_air_y:.1f}" r="5" fill="#a78bfa"/>
-<circle cx="{cur_x:.1f}" cy="{cur_sea_y:.1f}" r="5" fill="#34d399"/>
-<text x="{cur_x+8:.1f}" y="{label_y:.1f}" fill="#e8e8f0" font-size="11">Your shipment: {weight:.0f} kg</text>
+<circle cx="{air_x:.1f}" cy="{air_y:.1f}" r="5" fill="#a78bfa"/>
+<circle cx="{sea_x:.1f}" cy="{sea_y:.1f}" r="5" fill="#34d399"/>
+<text x="{air_x+8:.1f}" y="{air_y-10:.1f}" fill="#e8e8f0" font-size="11">Air: {air_weight:.0f} kg chargeable</text>
+<text x="{sea_x+8:.1f}" y="{sea_y+18:.1f}" fill="#e8e8f0" font-size="11">Sea: {sea_weight:.0f} kg-equiv</text>
 <text x="{ml}" y="{mt+ph+24}" fill="rgba(167,139,250,0.9)" font-size="11">&#9679; Air freight (${air_rate:.2f}/kg)</text>
 <text x="{ml+190}" y="{mt+ph+24}" fill="rgba(52,211,153,0.9)" font-size="11">&#9679; Sea freight (${sea_rate:.2f}/kg, ${sea_min:.0f} min)</text>
 </svg>'''
@@ -278,7 +299,7 @@ with col5:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13, tab14 = st.tabs([
     "🎁 Customs Intelligence",
     "✈️ Shipping Optimizer",
     "🎤 Artist Tour Planner",
@@ -286,7 +307,13 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
     "📊 Shipment Readiness",
     "🗺️ Platform Vision",
     "🎪 Fanomenon Layer",
-    "📈 Trainee Ledger"
+    "📈 Trainee Ledger",
+    "⛩️ Korea-Japan Corridor",
+    "⏱️ Comeback Countdown",
+    "📡 Counterfeit Radar",
+    "🌟 Momentum & Retention",
+    "🌐 Scouting Funnel",
+    "💎 Fanomenon Boundaries"
 ])
 
 # ============================================================
@@ -524,6 +551,21 @@ with tab2:
         cargo_value = st.number_input("Cargo Value (USD)", min_value=0.0, value=5000.0)
         event_type = st.selectbox("Event Type", ["Concert Tour", "Pop-up Store", "Fan Meeting", "Album Release", "General Retail"])
 
+    with st.expander("📐 Package dimensions — air and sea price bulky cargo differently"):
+        st.caption(
+            "Air freight bills whichever is greater: actual weight, or volumetric weight "
+            "(L×W×H ÷ 6000). Sea freight bills by CBM / revenue ton. Leave at 0 to fall back "
+            "to a straight per-kg estimate — accurate for dense cargo, understated for "
+            "bulky, lightweight merch like apparel, lightsticks, or posters."
+        )
+        dim_col1, dim_col2, dim_col3 = st.columns(3)
+        with dim_col1:
+            length_cm = st.number_input("Length (cm)", min_value=0.0, value=0.0, key="len_cm")
+        with dim_col2:
+            width_cm = st.number_input("Width (cm)", min_value=0.0, value=0.0, key="wid_cm")
+        with dim_col3:
+            height_cm = st.number_input("Height (cm)", min_value=0.0, value=0.0, key="hgt_cm")
+
     if st.button("🚀 Calculate Optimal Shipping", key="ship_btn"):
         if ship_dest in AIR_RATES and ship_dest in SEA_RATES:
             air = AIR_RATES[ship_dest]
@@ -531,12 +573,18 @@ with tab2:
 
             customs_days = air["customs"]
 
-            air_cost = weight * air["rate"]
+            # Air and sea don't share a pricing unit: air bills chargeable
+            # weight (max of actual vs. volumetric), sea bills revenue
+            # weight (max of actual vs. CBM-equivalent).
+            air_weight = air_chargeable_weight(weight, length_cm, width_cm, height_cm)
+            sea_weight = sea_revenue_weight(weight, length_cm, width_cm, height_cm)
+
+            air_cost = air_weight * air["rate"]
             air_total = air["transit"] + customs_days
             air_ship_by = required_date - timedelta(days=air_total)
             air_viable = days_available >= air_total
 
-            sea_cost = max(weight * sea["rate"], sea["min"])
+            sea_cost = max(sea_weight * sea["rate"], sea["min"])
             sea_total = sea["transit"] + customs_days
             sea_ship_by = required_date - timedelta(days=sea_total)
             sea_viable = days_available >= sea_total
@@ -549,6 +597,8 @@ with tab2:
                 status = "✅ VIABLE" if air_viable else "❌ NOT VIABLE"
                 st.markdown(f"### ✈️ Air Freight — {status}")
                 st.metric("Estimated Cost", f"${air_cost:,.0f}")
+                if air_weight > weight:
+                    st.caption(f"Priced on {air_weight:,.0f} kg chargeable weight — volumetric size exceeds actual {weight:,.0f} kg")
                 st.metric("Transit Time", f"{air['transit']} days")
                 st.metric("Customs Clearance", f"{customs_days} days")
                 st.metric("Total Days Needed", f"{air_total} days")
@@ -561,6 +611,8 @@ with tab2:
                 status = "✅ VIABLE" if sea_viable else "❌ NOT VIABLE"
                 st.markdown(f"### 🚢 Sea Freight — {status}")
                 st.metric("Estimated Cost", f"${sea_cost:,.0f}")
+                if sea_weight > weight:
+                    st.caption(f"Priced on {sea_weight:,.0f} kg revenue weight — volume (CBM) exceeds actual {weight:,.0f} kg")
                 st.metric("Transit Time", f"{sea['transit']} days")
                 st.metric("Customs Clearance", f"{customs_days} days")
                 st.metric("Total Days Needed", f"{sea_total} days")
@@ -610,24 +662,31 @@ with tab2:
             st.markdown("---")
             st.markdown("#### 🧠 How Narae Made This Recommendation")
             st.markdown(flow_diagram([
-                "Weight & deadline",
-                "Air cost = rate × kg",
-                "Sea cost = max(rate × kg, minimum)",
+                "Weight + dimensions",
+                "Air = rate × chargeable wt",
+                "Sea = max(rate × revenue wt, minimum)",
                 "Check deadline feasibility",
                 "Compare cost",
                 "Recommendation"
             ]), unsafe_allow_html=True)
 
-            svg, breakeven = render_breakeven_chart(weight, air["rate"], sea["rate"], sea["min"])
+            svg, breakeven = render_breakeven_chart(air_weight, sea_weight, air["rate"], sea["rate"], sea["min"])
             st.markdown(svg, unsafe_allow_html=True)
 
+            dims_given = length_cm and width_cm and height_cm
+            basis_note = (
+                "Both figures already account for the box's dimensions, not just its scale weight."
+                if dims_given else
+                "No dimensions entered — both figures assume dense cargo. Add dimensions above for bulky merch (apparel, lightsticks, posters) to see the real chargeable cost."
+            )
             st.markdown(f"""
             <div class="result-box">
             <b>In plain numbers, for {ship_dest}:</b><br><br>
-            Air freight: {weight:,.0f} kg × ${air['rate']:.2f}/kg = <b>${air_cost:,.0f}</b><br>
-            Sea freight: max({weight:,.0f} kg × ${sea['rate']:.2f}/kg, ${sea['min']:,.0f} minimum) = <b>${sea_cost:,.0f}</b><br><br>
-            Sea freight carries a flat minimum charge of <b>${sea['min']:,.0f}</b> no matter how light the shipment is — so for anything under about <b>{breakeven:.0f} kg</b> to {ship_dest}, you're paying for container space you don't need, and air freight (priced purely per kg) wins on cost as well as speed.
-            Once a shipment passes roughly {breakeven:.0f} kg, sea's much lower per-kg rate (${sea['rate']:.2f} vs air's ${air['rate']:.2f}) takes over and the gap only grows from there.
+            Air freight: {air_weight:,.0f} kg chargeable × ${air['rate']:.2f}/kg = <b>${air_cost:,.0f}</b><br>
+            Sea freight: max({sea_weight:,.0f} kg-equiv × ${sea['rate']:.2f}/kg, ${sea['min']:,.0f} minimum) = <b>${sea_cost:,.0f}</b><br><br>
+            {basis_note}<br><br>
+            Sea freight carries a flat minimum charge of <b>${sea['min']:,.0f}</b> — so for anything under about <b>{breakeven:.0f} kg</b> to {ship_dest}, air wins on cost as well as speed.
+            Once a shipment passes ~{breakeven:.0f} kg, sea's lower rate (${sea['rate']:.2f} vs air's ${air['rate']:.2f}/kg) takes over.
             </div>
             """, unsafe_allow_html=True)
 
@@ -1041,6 +1100,78 @@ with tab8:
     st.markdown("*Concept prototype — pairing an agency's own training spend with its own evaluation scores to flag investment risk early*")
     st.caption("This is a concept demo built on illustrative sample data, not a real agency's records. It applies the same approach as the Fanomenon layer — aggregate what's already tracked into one view — to a second problem: trainee development investment.")
     components.html(load_prototype_html("trainee_investment_ledger.html"), height=2700, scrolling=True)
+
+# ============================================================
+# TAB 9 — KOREA-JAPAN CORRIDOR
+# ============================================================
+with tab9:
+    st.markdown("### ⛩️ Korea-Japan Corridor")
+    st.markdown("*Concept prototype — checking one shipment against both Korea's and Japan's customs rules for K-entertainment joint ventures like JYP's NiziU / Sony Music Japan*")
+    st.caption("Concept demo built on illustrative sample data. Applies the same Narae approach — aggregate what's already tracked — to a shipment crossing an actual border between two regulatory regimes simultaneously.")
+    try:
+        components.html(load_prototype_html("korea_japan_corridor.html"), height=2600, scrolling=True)
+    except FileNotFoundError:
+        st.info("🚧 korea_japan_corridor.html prototype file coming soon. Place it in the prototypes/ folder to activate this tab.")
+
+# ============================================================
+# TAB 10 — COMEBACK RELEASE COUNTDOWN
+# ============================================================
+with tab10:
+    st.markdown("### ⏱️ Comeback Release Countdown")
+    st.markdown("*Concept prototype — holding every comeback's production and logistics milestones against a fixed release date, grounded in SEVENTEEN's real 2025 HAPPY BURSTDAY shipping delay*")
+    st.caption("Concept demo built on illustrative sample data, not a real label's production schedule. Applies the same approach as other Narae layers — one view, one date that can't move.")
+    try:
+        components.html(load_prototype_html("comeback_release_countdown.html"), height=2750, scrolling=True)
+    except FileNotFoundError:
+        st.info("🚧 comeback_release_countdown.html prototype file coming soon. Place it in the prototypes/ folder to activate this tab.")
+
+# ============================================================
+# TAB 11 — COUNTERFEIT & GREY-MARKET RADAR
+# ============================================================
+with tab11:
+    st.markdown("### 📡 Counterfeit & Grey-Market Radar")
+    st.markdown("*Concept prototype — a standing watch across major marketplaces for counterfeit and grey-market merch, extending the IP & Brand Risk tab from a periodic sweep into a continuous one*")
+    st.caption("Concept demo built on illustrative sample data. Grounded in HYBE's 2025 sustainability report and Korean lawmakers' 2025 counterfeit-seizure data. Not a real monitoring feed.")
+    try:
+        components.html(load_prototype_html("counterfeit_greymarket_radar.html"), height=2750, scrolling=True)
+    except FileNotFoundError:
+        st.info("🚧 counterfeit_greymarket_radar.html prototype file coming soon. Place it in the prototypes/ folder to activate this tab.")
+
+# ============================================================
+# TAB 12 — MOMENTUM & RETENTION TRACKER
+# ============================================================
+with tab12:
+    st.markdown("### 🌟 Momentum & Retention Tracker")
+    st.markdown("*Concept prototype — holds streaming, social, ticket-pace, and brand-deal momentum against each artist's contract-renewal window, grounded in Stray Kids' real 2024 JYP renewal*")
+    st.caption("Concept demo built on illustrative sample data. Uses only business-visible signals agencies already track — no health or wellbeing data, no new artist-facing tracking.")
+    try:
+        components.html(load_prototype_html("momentum_retention_tracker.html"), height=2850, scrolling=True)
+    except FileNotFoundError:
+        st.info("🚧 momentum_retention_tracker.html prototype file coming soon. Place it in the prototypes/ folder to activate this tab.")
+
+# ============================================================
+# TAB 13 — GLOBAL SCOUTING & AUDITION FUNNEL
+# ============================================================
+with tab13:
+    st.markdown("### 🌐 Global Scouting & Audition Funnel")
+    st.markdown("*Concept prototype — tracks a shared applicant pool stage-by-stage across labels, grounded in HYBE's real 2026 eight-label Integrated Global Audition and the industry's shrinking trainee pipeline*")
+    st.caption("Concept demo built on illustrative sample data, not real agency or applicant data.")
+    try:
+        components.html(load_prototype_html("global_scouting_audition_funnel.html"), height=2900, scrolling=True)
+    except FileNotFoundError:
+        st.info("🚧 global_scouting_audition_funnel.html prototype file coming soon. Place it in the prototypes/ folder to activate this tab.")
+
+# ============================================================
+# TAB 14 — FANOMENON BOUNDARY MAP
+# ============================================================
+with tab14:
+    st.markdown("### 💎 Fanomenon: One Stage, Four Boundaries")
+    st.markdown("*Concept prototype — a sponsor category boundary check across all four labels, with no label's own roster, deals, or terms ever exposed to the other three*")
+    st.caption("Concept demo built on illustrative sample data. The Louis Vuitton ambassador overlap referenced (Lisa/YG, S.Coups/HYBE, RIIZE/SM) is real and publicly reported; the sponsor-category table is an illustration.")
+    try:
+        components.html(load_prototype_html("fanomenon_boundary_map.html"), height=3000, scrolling=True)
+    except FileNotFoundError:
+        st.info("🚧 fanomenon_boundary_map.html prototype file coming soon. Place it in the prototypes/ folder to activate this tab.")
 
 st.markdown("---")
 st.markdown("""
