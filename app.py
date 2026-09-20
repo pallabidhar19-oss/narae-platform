@@ -918,29 +918,32 @@ with tab5:
 
         days_until = (sr_deadline - date.today()).days
 
+        # 1. Lead time — general runway, independent of mode or destination (max 15)
         if days_until >= 21:
-            score += 20
+            score += 15
             good.append("✅ Sufficient lead time")
         elif days_until >= 14:
-            score += 12
+            score += 9
             warnings.append("⚠️ Tight timeline — 14-21 days")
         elif days_until >= 7:
-            score += 5
+            score += 3
             issues.append("🔴 Very tight timeline — under 14 days")
         else:
             issues.append("🔴 CRITICAL: Less than 7 days — shipment at serious risk")
 
+        # 2. Licensing (max 20)
         if sr_licensed == "Officially Licensed":
-            score += 25
+            score += 20
             good.append("✅ Official license documentation — IP/authenticity risk reduced")
         elif sr_licensed == "Unknown":
-            score += 10
+            score += 8
             warnings.append("⚠️ License status unknown — obtain documentation")
         else:
             issues.append("🔴 Unauthorized merchandise — high seizure risk")
 
-        doc_score = len(sr_docs) * 5
-        score += min(doc_score, 25)
+        # 3. Documentation (max 15 — 6 possible documents × 2.5)
+        doc_score = len(sr_docs) * 2.5
+        score += min(doc_score, 15)
         if len(sr_docs) >= 4:
             good.append(f"✅ Strong documentation ({len(sr_docs)} documents ready)")
         elif len(sr_docs) >= 2:
@@ -948,6 +951,15 @@ with tab5:
         else:
             issues.append("🔴 Insufficient documentation")
 
+        # 4. Customs broker (max 10)
+        if sr_broker == "Engaged":
+            score += 10
+            good.append("✅ Customs broker engaged")
+        elif sr_broker == "Not yet engaged":
+            score += 3
+            warnings.append("⚠️ Engage customs broker before shipping")
+
+        # 5. Destination risk — modifier, not a flat max (±10)
         if sr_destination in ["Brazil", "Argentina"]:
             score -= 10
             issues.append("🔴 High-duty market — expect customs delays and additional costs")
@@ -955,12 +967,38 @@ with tab5:
             score += 10
             good.append(f"✅ {sr_destination} — efficient customs processing")
 
-        if sr_broker == "Engaged":
-            score += 15
-            good.append("✅ Customs broker engaged")
-        elif sr_broker == "Not yet engaged":
-            score += 5
-            warnings.append("⚠️ Engage customs broker before shipping")
+        # 6. Shipment value (max 10) — higher value raises the compliance bar
+        # rather than being penalized outright; it just stops earning the
+        # "low-value, low-scrutiny" bonus that small shipments get for free.
+        if sr_value < 2500:
+            score += 10
+            good.append("✅ Low-value shipment (<$2,500) — simplified customs entry likely")
+        elif sr_value < 10000:
+            score += 6
+            good.append("✅ Standard commercial value — standard customs entry expected")
+        else:
+            warnings.append("⚠️ High-value shipment (≥$10,000) — formal customs entry, customs bond, and full insurance coverage strongly recommended")
+
+        # 7. Weight/deadline feasibility (max 20) — is this specific weight
+        # actually shippable to this specific destination within the
+        # deadline, using the same per-destination transit + customs
+        # numbers as the Shipping Optimizer (Tab 2), so the two tabs never
+        # disagree about how long a shipment to the same place takes.
+        air_profile = AIR_RATES.get(sr_destination)
+        if air_profile:
+            air_total_days = air_profile["transit"] + air_profile["customs"]
+            buffer_days = days_until - air_total_days
+            if buffer_days >= 7:
+                score += 20
+                good.append(f"✅ {sr_weight:.0f} kg comfortably clears the {air_total_days}-day air transit+customs window for {sr_destination} ({buffer_days}-day buffer)")
+            elif buffer_days >= 0:
+                score += 10
+                warnings.append(f"⚠️ Tight fit — only {buffer_days} day(s) of buffer beyond the {air_total_days}-day minimum air transit+customs window for {sr_destination}")
+            elif sr_weight <= 30:
+                score += 3
+                warnings.append(f"⚠️ Air freight alone misses the deadline by {abs(buffer_days)} day(s) — expedited courier (DHL/FedEx Premium) may still work at {sr_weight:.0f} kg, at a premium cost")
+            else:
+                issues.append(f"🔴 CRITICAL: Even air freight misses the deadline by {abs(buffer_days)} day(s), and {sr_weight:.0f} kg is too heavy for a realistic courier fallback — replan the deadline or destination")
 
         score = max(0, min(100, score))
 
